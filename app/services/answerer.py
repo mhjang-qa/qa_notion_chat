@@ -59,7 +59,7 @@ def _fixed_response(question: str) -> dict | None:
 
     if _GREETING_RE.match(raw) or _CALL_RE.match(raw):
         return {
-            "answer": "안녕하세요. QA 전용 챗봇 Hyo.Chat 입니다.\n저는 QA Notion에 정리된 테스트 계획, 테스트 결과, 결함/이슈, 회귀 테스트, QA 프로세스 내용을 기준으로 답변합니다.",
+            "answer": "안녕하세요. QA 전용 챗봇 Hyo.Chat 입니다.\n저는 QA Notion에 정리된 테스트 계획, 테스트 결과, 결함/이슈\n노션 내용을 기준으로 답변합니다.",
             "sources": [],
             "origin": "SYSTEM",
             "mode": "greeting",

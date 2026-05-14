@@ -21,58 +21,23 @@ templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 app = FastAPI(title="QA Notion Chatbot")
 
 @app.middleware("http")
-
 async def allow_iframe_embed(request: Request, call_next):
-
     response = await call_next(request)
 
     if "x-frame-options" in response.headers:
-
         del response.headers["x-frame-options"]
 
     response.headers["Content-Security-Policy"] = (
-
         "frame-ancestors 'self' "
-
         "https://www.notion.so "
-
         "https://notion.so "
-
         "https://*.notion.so "
-
         "https://*.notion.site "
-
         "https://mhjang-qa.github.io;"
-
     )
 
     return response
 
-@app.middleware("http")
-
-async def allow_notion_embed(request: Request, call_next):
-
-    response = await call_next(request)
-
-    if "x-frame-options" in response.headers:
-
-        del response.headers["x-frame-options"]
-
-    response.headers["Content-Security-Policy"] = (
-
-        "frame-ancestors 'self' "
-
-        "https://www.notion.so "
-
-        "https://notion.so "
-
-        "https://*.notion.so "
-
-        "https://*.notion.site;"
-
-    )
-
-    return response
 
 
 def _index_needs_startup_sync() -> bool:

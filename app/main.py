@@ -20,13 +20,17 @@ templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 
 app = FastAPI(title="QA Notion Chatbot")
 
+
+
 @app.middleware("http")
 
 async def allow_notion_embed(request: Request, call_next):
 
     response = await call_next(request)
 
-    response.headers.pop("x-frame-options", None)
+    if "x-frame-options" in response.headers:
+
+        del response.headers["x-frame-options"]
 
     response.headers["Content-Security-Policy"] = (
 

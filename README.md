@@ -74,6 +74,14 @@ Render 무료 Web Service는 일정 시간 요청이 없으면 스핀다운됩�
 
 GitHub Actions를 사용할 경우 UTC 기준으로 KST 평일 09:00-18:00은 `0 0-9 * * 1-5`에 가깝습니다. 10분 간격이면 `*/10 0-9 * * 1-5`를 사용하고, 워크플로 안에서 `/health`를 호출하면 됩니다.
 
+GitHub Actions를 사용하려면 GitHub 저장소의 `Settings > Secrets and variables > Actions`에 아래 secret을 추가하세요.
+
+```bash
+RENDER_SERVICE_URL=https://<render-service>.onrender.com
+```
+
+워크플로는 KST 평일 09:00-17:50 동안 10분마다 `/health`를 호출하면 됩니다. 마지막 호출 이후 약 15분 동안은 Render가 스핀다운하지 않으므로 18:00 전후까지 유지됩니다.
+
 ## 답변 정책
 
 - `NOTION_ROOT_PAGE_ID` 페이지와 하위 페이지에서 가져온 텍스트만 사용합니다.

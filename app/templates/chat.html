@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>QA Notion Chatbot</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <section class="chat-widget" aria-label="QA Chatbot">
+    <header class="chat-header">
+      <img class="hanq-avatar header-avatar" src="/static/hanq.png" alt="Hyo.Chat">
+      <div class="chat-title">
+        <p class="eyebrow">IT Quality Management</p>
+        <strong>Hyo.Chat</strong>
+        <small>노션 QA 페이지와 하위 페이지를 기준으로 답변합니다.</small>
+        <span id="syncStatus">준비 중</span>
+      </div>
+      <div class="header-actions">
+        <button id="btnSync" type="button">동기화</button>
+        {% if auth_required %}
+        <a href="/logout">로그아웃</a>
+        {% endif %}
+      </div>
+    </header>
+    <main id="messages" class="messages"></main>
+    <footer class="composer">
+      <textarea id="question" rows="1" placeholder="질문을 입력하세요."></textarea>
+      <button id="btnSend" type="button">전송</button>
+    </footer>
+  </section>
+
+  <script src="/static/chat.js?v=answer-items-1"></script>
+</body>
+</html>

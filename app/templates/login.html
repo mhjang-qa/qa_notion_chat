@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>QA Notion Chatbot Login</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body class="login-page">
+  <main class="login-card">
+    <div>
+      <p class="eyebrow">QA Notion Chatbot</p>
+      <h1>로그인</h1>
+    </div>
+    {% if error %}
+      <div class="error">{{ error }}</div>
+    {% endif %}
+    <form method="post" action="/login" class="login-form">
+      <label>
+        아이디
+        <input name="username" autocomplete="username" required>
+      </label>
+      <label>
+        비밀번호
+        <input name="password" type="password" autocomplete="current-password" required>
+      </label>
+      <button type="submit">접속</button>
+    </form>
+  </main>
+</body>
+</html>
+

@@ -611,5 +611,5 @@ question.addEventListener("keydown", (event) => {
 btnSend.addEventListener("click", sendQuestion);
 btnSync.addEventListener("click", syncNotion);
 
-typeText(addMessage("bot", ""), "안녕하세요. QA 전용 챗봇 Hyo.Chat 입니다.\n사용 방법이 궁금하시면 '사용가이드'를 입력해주세요", 20);
+typeText(addMessage("bot", ""), "안녕하세요. QA 전용 챗봇 Hyo.Chat 입니다.\n사용 방법이 궁금하시면 '사용가이드'를 입력해주세요.\n결함 제보의 경우 '결함 제보'를 입력해주세요.", 20);
 refreshStatus();

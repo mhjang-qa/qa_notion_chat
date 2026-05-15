@@ -433,6 +433,7 @@ def crawl_page_tree(root_page_id: str) -> list[NotionPageDoc]:
     visit_priority_target(config.QA_PRIORITY_DEFECT_PAGE_ID, "결함 검색")
     visit_priority_target(config.QA_PRIORITY_RESULT_PAGE_ID, "테스트 결과서")
     visit_priority_target(config.QA_PRIORITY_PLAN_PAGE_ID, "테스트 계획서")
+    visit_priority_target(config.QA_PRIORITY_PROGRESS_DB_ID, "업무 진행 현황")
     return docs
 
 

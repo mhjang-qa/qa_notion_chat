@@ -77,7 +77,12 @@ async def bug_report_files(files: list[UploadFile] = File(...)):
 @router.post("/sync")
 def sync():
     try:
-        return sync_qa_pages()
+        result = sync_priority_pages()
+        return {
+            **result,
+            "pages": result.get("total_pages", 0),
+            "text_pages": result.get("total_pages", 0),
+        }
     except NotionSyncError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
@@ -85,7 +90,12 @@ def sync():
 @router.post("/sync/priority")
 def sync_priority():
     try:
-        return sync_priority_pages()
+        result = sync_priority_pages()
+        return {
+            **result,
+            "pages": result.get("total_pages", 0),
+            "text_pages": result.get("total_pages", 0),
+        }
     except NotionSyncError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 

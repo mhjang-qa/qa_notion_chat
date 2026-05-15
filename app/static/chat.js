@@ -495,11 +495,11 @@ async function syncNotion() {
   if (syncing) return;
   syncing = true;
   btnSync.disabled = true;
-  const bubble = addMessage("meta", "노션 QA 페이지를 동기화하는 중입니다.");
+  const bubble = addMessage("meta", "노션 우선 검색 영역을 동기화하는 중입니다.");
   syncStatus.textContent = "동기화 중";
 
   try {
-    const res = await fetch("/api/sync", { method: "POST" });
+    const res = await fetch("/api/sync/priority", { method: "POST" });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
       const detail = data.detail || `HTTP ${res.status}`;
@@ -507,7 +507,9 @@ async function syncNotion() {
       syncStatus.textContent = "동기화 실패";
       return;
     }
-    bubble.textContent = `동기화 완료: ${data.pages}개 페이지, ${data.text_pages}개 텍스트 페이지`;
+    const pageCount = data.total_pages || data.pages || 0;
+    const priorityCount = data.priority_pages || 0;
+    bubble.textContent = `동기화 완료: ${pageCount}개 페이지 / 우선 검색 ${priorityCount}개 페이지`;
     await refreshStatus();
   } catch {
     bubble.textContent = "동기화 실패: 네트워크 오류";

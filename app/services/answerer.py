@@ -41,6 +41,16 @@ _CURRENT_WORK_RE = re.compile(
     r"(테스트|업무|항목).*(현재|지금|진행\s*중|진행중|현황)",
     re.IGNORECASE,
 )
+_PENDING_WORK_RE = re.compile(
+    r"(시작\s*(전|이전)|시작전|예정|대기).*(테스트|업무|항목|현황)|"
+    r"(테스트|업무|항목).*(시작\s*(전|이전)|시작전|예정|대기)",
+    re.IGNORECASE,
+)
+_DONE_WORK_RE = re.compile(
+    r"(완료|종료|끝난).*(테스트|업무|항목|현황)|"
+    r"(테스트|업무|항목).*(완료|종료|끝난)",
+    re.IGNORECASE,
+)
 
 
 def _compact(text: str) -> str:
@@ -62,8 +72,18 @@ def _fixed_response(question: str) -> dict | None:
     if _DEFECT_STATUS_RE.search(raw):
         return _defect_status_summary()
 
+    if _PENDING_WORK_RE.search(raw):
+        progress = _work_status_summary("pending")
+        if progress is not None:
+            return progress
+
+    if _DONE_WORK_RE.search(raw):
+        progress = _work_status_summary("done")
+        if progress is not None:
+            return progress
+
     if _CURRENT_WORK_RE.search(raw):
-        progress = _current_work_summary()
+        progress = _work_status_summary("active")
         if progress is not None:
             return progress
 
@@ -300,6 +320,22 @@ def _is_active_work(text: str) -> bool:
     return bool(re.search(r"진행\s*중|in\s*progress|ongoing|개발\s*중|검증\s*중", text or "", re.IGNORECASE))
 
 
+def _work_status_group(text: str) -> str:
+    status = _line_value(text, ("상태", "진행 상태", "진행상태", "Status", "status"))
+    lowered = status.lower()
+    if status and any(done in lowered for done in ("완료", "done", "종료", "closed", "cancel", "취소")):
+        return "done"
+    if status and any(pending in lowered for pending in ("시작 전", "시작전", "예정", "대기", "todo", "not started", "before start")):
+        return "pending"
+    if status and any(active in lowered for active in ("진행", "progress", "ongoing", "개발", "검증")):
+        return "active"
+    if re.search(r"시작\s*(전|이전)|시작전|not\s*started|todo", text or "", re.IGNORECASE):
+        return "pending"
+    if re.search(r"진행\s*중|in\s*progress|ongoing|개발\s*중|검증\s*중", text or "", re.IGNORECASE):
+        return "active"
+    return "other"
+
+
 def _priority_rank(text: str) -> int:
     priority = _line_value(text, ("우선순위", "우선 순위", "Priority", "priority", "중요도"))
     haystack = priority.lower()
@@ -345,22 +381,29 @@ def _progress_item_text(page: dict, idx: int) -> str:
     return "\n".join(lines).strip()
 
 
-def _current_work_summary() -> dict | None:
+def _work_status_summary(status_group: str) -> dict | None:
     pages = [page for page in (load_index().get("pages") or []) if isinstance(page, dict) and _is_progress_doc(page)]
     if not pages:
         return None
 
-    active_pages = [page for page in pages if _is_active_work(str(page.get("text") or ""))]
-    if not active_pages:
+    matched_pages = [page for page in pages if _work_status_group(str(page.get("text") or "")) == status_group]
+    labels = {
+        "active": ("현재 진행중인", "current_work_status"),
+        "pending": ("시작 전인", "pending_work_status"),
+        "done": ("완료된", "done_work_status"),
+    }
+    label, mode = labels.get(status_group, ("요청한 상태의", "work_status"))
+
+    if not matched_pages:
         return {
-            "answer": "업무 진행 현황에서 현재 진행중인 항목을 찾지 못했습니다.",
+            "answer": f"업무 진행 현황에서 {label} 항목을 찾지 못했습니다.",
             "sources": [],
             "items": [],
             "origin": "NOTION",
-            "mode": "current_work_status",
+            "mode": mode,
         }
 
-    active_pages.sort(
+    matched_pages.sort(
         key=lambda page: (
             _priority_rank(str(page.get("text") or "")),
             str(page.get("last_edited_time") or ""),
@@ -369,7 +412,7 @@ def _current_work_summary() -> dict | None:
     )
 
     items: list[dict] = []
-    for idx, page in enumerate(active_pages[:8], start=1):
+    for idx, page in enumerate(matched_pages[:8], start=1):
         source = {
             "title": str(page.get("title") or "제목 없음"),
             "url": str(page.get("url") or ""),
@@ -380,11 +423,11 @@ def _current_work_summary() -> dict | None:
         items.append({"text": _progress_item_text(page, idx), "source": source})
 
     return {
-        "answer": f"업무 진행 현황에서 현재 진행중인 항목 {len(active_pages)}건을 확인했습니다. 우선순위가 높은 항목부터 보여드립니다.",
+        "answer": f"업무 진행 현황에서 {label} 항목 {len(matched_pages)}건을 확인했습니다. 우선순위가 높은 항목부터 보여드립니다.",
         "sources": [item["source"] for item in items if item.get("source")],
         "items": items,
         "origin": "NOTION",
-        "mode": "current_work_status",
+        "mode": mode,
     }
 
 

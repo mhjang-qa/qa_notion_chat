@@ -34,9 +34,9 @@ _STOPWORDS = {
 
 _HIGH_VALUE_PATH_KEYWORDS = (
     "qa 업무 진행 현황",
+    "업무 진행 현황",
     "업무 공간",
     "기타 자료",
-    "업무 진행 현황",
     "테스트 진행 현황",
     "current testing status",
     "출시 테스트 보고서",
@@ -117,6 +117,7 @@ _PRIORITY_IDS = {
     "defect": _norm_id(config.QA_PRIORITY_DEFECT_PAGE_ID),
     "workspace": _norm_id(config.QA_PRIORITY_WORKSPACE_DB_ID),
     "misc": _norm_id(config.QA_PRIORITY_MISC_DB_ID),
+    "progress": _norm_id(config.QA_PRIORITY_PROGRESS_DB_ID),
 }
 _MIN_ISSUE_VERSION = _version_tuple(config.QA_ISSUE_MIN_TARGET_VERSION)
 _GENERIC_DEFECT_TOKENS = {"결함", "검색", "이슈", "버그", "장애", "오류", "issue", "bug"}
@@ -249,8 +250,10 @@ def _priority_score(question: str, chunk: Chunk, matched: int) -> float:
             score -= 12.0
 
     if current_intent:
+        if _PRIORITY_IDS["progress"] and (_PRIORITY_IDS["progress"] == page_id or _PRIORITY_IDS["progress"] in url):
+            score += 42.0
         if _contains_any(scope, ("qa 업무 진행 현황", "업무 진행 현황", "테스트 진행 현황", "current testing status")):
-            score += 18.0
+            score += 28.0
         if _contains_any(scope, ("진행 현황", "진행현황", "테스트 결과서", "출시 테스트 보고서")):
             score += 8.0
         if _contains_any(full, ("진행중", "진행 중", "in progress", "current", "status", "updated")):
@@ -307,6 +310,7 @@ def search(question: str, top_k: int | None = None) -> list[SearchHit]:
     is_plan_query = _contains_any((question or "").lower(), ("계획", "계획서", "test plan"))
     is_process_query = _contains_any((question or "").lower(), _INTENT_KEYWORDS["process"])
     is_definition_query = _contains_any((question or "").lower(), _INTENT_KEYWORDS["definition"])
+    is_current_query = _contains_any((question or "").lower(), _INTENT_KEYWORDS["current"])
     version_scoped_query = bool(
         explicit_query_version
         and _contains_any(
@@ -375,6 +379,9 @@ def search(question: str, top_k: int | None = None) -> list[SearchHit]:
             continue
         if is_definition_query and _contains_any(scope_for_intent, ("오류 리포트", "테스트 결과서", "qa_issues")):
             continue
+        if is_current_query and _contains_any((question or "").lower(), ("현재", "진행중", "진행 중")):
+            if not _contains_any(scope_for_intent, ("업무 진행 현황", "qa 업무 진행 현황", "테스트 진행 현황", "current testing status")):
+                continue
         if is_result_query and not is_plan_query and _contains_any(scope_for_intent, ("테스트 계획서", "test plan")):
             continue
         if is_plan_query and not is_result_query and _contains_any(scope_for_intent, ("테스트 결과서", "결과서")):

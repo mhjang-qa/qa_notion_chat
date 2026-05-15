@@ -36,6 +36,11 @@ _REPORT_RE = re.compile(
     re.IGNORECASE,
 )
 _DEFECT_STATUS_RE = re.compile(r"(현재)?\s*(결함|이슈|버그|장애)\s*(현황|상태|요약|summary)", re.IGNORECASE)
+_CURRENT_WORK_RE = re.compile(
+    r"(현재|지금|진행\s*중|진행중).*(테스트|업무|항목|현황)|"
+    r"(테스트|업무|항목).*(현재|지금|진행\s*중|진행중|현황)",
+    re.IGNORECASE,
+)
 
 
 def _compact(text: str) -> str:
@@ -56,6 +61,11 @@ def _fixed_response(question: str) -> dict | None:
 
     if _DEFECT_STATUS_RE.search(raw):
         return _defect_status_summary()
+
+    if _CURRENT_WORK_RE.search(raw):
+        progress = _current_work_summary()
+        if progress is not None:
+            return progress
 
     if _GREETING_RE.match(raw) or _CALL_RE.match(raw):
         return {
@@ -263,6 +273,119 @@ def _extractive_answer(hits: list[SearchHit]) -> str:
 def _issue_status(text: str) -> str:
     match = re.search(r"^상태:\s*(.+)$", text or "", re.M)
     return match.group(1).strip() if match else "상태 없음"
+
+
+def _line_value(text: str, names: tuple[str, ...]) -> str:
+    for raw in (text or "").splitlines():
+        line = raw.strip()
+        for name in names:
+            match = re.match(rf"^{re.escape(name)}\s*:\s*(.+)$", line, re.IGNORECASE)
+            if match:
+                return match.group(1).strip()
+    return ""
+
+
+def _is_progress_doc(page: dict) -> bool:
+    path = " > ".join(str(x) for x in (page.get("path") or []))
+    return any(keyword in path for keyword in ("업무 진행 현황", "QA 업무 진행 현황", "테스트 진행 현황"))
+
+
+def _is_active_work(text: str) -> bool:
+    status = _line_value(text, ("상태", "진행 상태", "진행상태", "Status", "status"))
+    lowered_status = status.lower()
+    if status and any(done in lowered_status for done in ("완료", "done", "종료", "closed", "cancel", "취소")):
+        return False
+    if status and any(active in lowered_status for active in ("진행", "progress", "ongoing", "개발", "검증", "대기", "예정")):
+        return True
+    return bool(re.search(r"진행\s*중|in\s*progress|ongoing|개발\s*중|검증\s*중", text or "", re.IGNORECASE))
+
+
+def _priority_rank(text: str) -> int:
+    priority = _line_value(text, ("우선순위", "우선 순위", "Priority", "priority", "중요도"))
+    haystack = priority.lower()
+    if any(token in haystack for token in ("p0", "critical", "긴급", "최상", "highest")):
+        return 0
+    if any(token in haystack for token in ("p1", "high", "높음", "상")):
+        return 1
+    if any(token in haystack for token in ("p2", "medium", "보통", "중")):
+        return 2
+    if any(token in haystack for token in ("p3", "low", "낮음", "하")):
+        return 3
+    return 9
+
+
+def _progress_item_text(page: dict, idx: int) -> str:
+    text = str(page.get("text") or "")
+    title = str(page.get("title") or "제목 없음")
+    lines = [f"{idx}. {title}"]
+    selected = _selected_lines(
+        text,
+        (
+            "상태:",
+            "진행 상태:",
+            "진행상태:",
+            "우선순위:",
+            "우선 순위:",
+            "담당자:",
+            "담당:",
+            "일정:",
+            "기간:",
+            "목표:",
+            "서비스:",
+            "버전:",
+            "진행률:",
+            "테스트:",
+        ),
+        limit=8,
+    )
+    if not selected:
+        selected = _summary_lines(text, limit=5)
+    for line in selected:
+        lines.append(f"- {line}")
+    return "\n".join(lines).strip()
+
+
+def _current_work_summary() -> dict | None:
+    pages = [page for page in (load_index().get("pages") or []) if isinstance(page, dict) and _is_progress_doc(page)]
+    if not pages:
+        return None
+
+    active_pages = [page for page in pages if _is_active_work(str(page.get("text") or ""))]
+    if not active_pages:
+        return {
+            "answer": "업무 진행 현황에서 현재 진행중인 항목을 찾지 못했습니다.",
+            "sources": [],
+            "items": [],
+            "origin": "NOTION",
+            "mode": "current_work_status",
+        }
+
+    active_pages.sort(
+        key=lambda page: (
+            _priority_rank(str(page.get("text") or "")),
+            str(page.get("last_edited_time") or ""),
+            str(page.get("title") or ""),
+        )
+    )
+
+    items: list[dict] = []
+    for idx, page in enumerate(active_pages[:8], start=1):
+        source = {
+            "title": str(page.get("title") or "제목 없음"),
+            "url": str(page.get("url") or ""),
+            "path": " > ".join(str(x) for x in (page.get("path") or [])),
+            "score": 0,
+            "preview": str(page.get("text") or "")[:300],
+        }
+        items.append({"text": _progress_item_text(page, idx), "source": source})
+
+    return {
+        "answer": f"업무 진행 현황에서 현재 진행중인 항목 {len(active_pages)}건을 확인했습니다. 우선순위가 높은 항목부터 보여드립니다.",
+        "sources": [item["source"] for item in items if item.get("source")],
+        "items": items,
+        "origin": "NOTION",
+        "mode": "current_work_status",
+    }
 
 
 def _defect_status_summary() -> dict:

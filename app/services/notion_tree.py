@@ -561,6 +561,8 @@ def crawl_priority_targets(limit: int = 180) -> list[NotionPageDoc]:
         add_page_target(config.QA_PRIORITY_RESULT_PAGE_ID, "테스트 결과서", max_docs=160)
     if not add_database_target(config.QA_PRIORITY_PLAN_PAGE_ID, "테스트 계획서", 60):
         add_page_target(config.QA_PRIORITY_PLAN_PAGE_ID, "테스트 계획서", max_docs=160)
+    if not add_database_target(config.QA_PRIORITY_PROGRESS_DB_ID, "업무 진행 현황", 120, include_page_body=True):
+        add_page_target(config.QA_PRIORITY_PROGRESS_DB_ID, "업무 진행 현황", max_docs=160)
     if not add_database_target(config.QA_PRIORITY_WORKSPACE_DB_ID, "업무 공간", 160):
         add_page_target(config.QA_PRIORITY_WORKSPACE_DB_ID, "업무 공간", max_docs=160)
     if not add_database_target(config.QA_PRIORITY_MISC_DB_ID, "기타 자료", 120, include_page_body=True):
@@ -582,6 +584,7 @@ def sync_priority_pages(limit: int = 180) -> dict[str, Any]:
     by_id: dict[str, dict[str, Any]] = {}
     priority_container_ids = {
         normalize_notion_id(config.QA_PRIORITY_DEFECT_PAGE_ID),
+        normalize_notion_id(config.QA_PRIORITY_PROGRESS_DB_ID),
         normalize_notion_id(config.QA_PRIORITY_WORKSPACE_DB_ID),
         normalize_notion_id(config.QA_PRIORITY_MISC_DB_ID),
     }
@@ -593,6 +596,8 @@ def sync_priority_pages(limit: int = 180) -> dict[str, Any]:
             if "QA_ISSUES" in " > ".join(str(x) for x in (page.get("path") or [])):
                 continue
             if "업무 공간" in " > ".join(str(x) for x in (page.get("path") or [])):
+                continue
+            if "업무 진행 현황" in " > ".join(str(x) for x in (page.get("path") or [])):
                 continue
             if "기타 자료" in " > ".join(str(x) for x in (page.get("path") or [])):
                 continue

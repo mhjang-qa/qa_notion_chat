@@ -17,7 +17,10 @@
 
 html,
 body {
-  min-height: 100%;
+  width: 100%;
+  min-width: 0;
+  min-height: 1800px;
+  overflow-x: hidden;
 }
 
 body {
@@ -25,7 +28,9 @@ body {
   color: var(--ink);
   background: var(--bg);
   font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", "Segoe UI", sans-serif;
-  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  overflow-y: auto;
 }
 
 button,
@@ -56,18 +61,26 @@ h1 {
 }
 
 .chat-widget {
-  width: 100vw;
-  height: 100dvh;
+  width: min(100%, 1120px);
+  max-width: 100%;
+  min-width: 0;
+  min-height: 1800px;
+  height: auto;
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  border-left: 1px solid var(--line);
+  border-right: 1px solid var(--line);
   background: var(--panel);
 }
 
 .chat-header {
   flex: 0 0 auto;
+  width: 100%;
+  min-width: 0;
   min-height: 116px;
-  padding: 16px 22px;
+  padding: 16px clamp(14px, 3vw, 28px);
   display: flex;
   align-items: center;
   gap: 18px;
@@ -104,6 +117,8 @@ h1 {
 .header-actions {
   flex: 0 0 auto;
   display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   align-items: center;
   gap: 8px;
 }
@@ -152,12 +167,17 @@ h1 {
 .messages {
   flex: 1 1 auto;
   min-height: 0;
-  overflow: auto;
+  width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
   padding: 22px clamp(16px, 4vw, 56px);
   background: var(--panel-2);
 }
 
 .msg {
+  width: 100%;
+  min-width: 0;
   display: flex;
   align-items: flex-end;
   gap: 12px;
@@ -175,7 +195,8 @@ h1 {
 }
 
 .bubble {
-  max-width: min(840px, 82%);
+  min-width: 0;
+  max-width: min(840px, calc(100% - 76px));
   padding: 13px 15px;
   border: 1px solid var(--line);
   background: var(--panel);
@@ -184,6 +205,7 @@ h1 {
   font-size: 15px;
   white-space: pre-wrap;
   word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 .bubble.typing::after {
@@ -204,6 +226,7 @@ h1 {
 }
 
 .msg.user .bubble {
+  max-width: min(840px, 88%);
   border-color: #c9dedb;
   background: #dff3f0;
 }
@@ -352,6 +375,8 @@ h1 {
 
 .composer {
   flex: 0 0 auto;
+  width: 100%;
+  min-width: 0;
   display: flex;
   gap: 10px;
   padding: 14px clamp(16px, 4vw, 56px);
@@ -435,6 +460,16 @@ h1 {
 }
 
 @media (max-width: 720px) {
+  body {
+    align-items: stretch;
+  }
+
+  .chat-widget {
+    width: 100%;
+    border-left: 0;
+    border-right: 0;
+  }
+
   .chat-header {
     min-height: 96px;
     padding: 12px;
@@ -476,11 +511,48 @@ h1 {
   }
 
   .bubble {
-    max-width: 84%;
+    max-width: calc(100% - 60px);
     font-size: 14px;
+  }
+
+  .msg.user .bubble {
+    max-width: 90%;
   }
 
   .composer {
     padding: 10px;
+  }
+}
+
+@media (max-width: 420px) {
+  .chat-header {
+    align-items: flex-start;
+  }
+
+  .header-avatar {
+    width: 68px;
+    height: 68px;
+    flex-basis: 68px;
+  }
+
+  .chat-header strong {
+    font-size: 20px;
+  }
+
+  .chat-header span {
+    font-size: 11px;
+  }
+
+  .header-actions {
+    width: 100%;
+    margin-left: 80px;
+  }
+
+  .composer {
+    gap: 8px;
+  }
+
+  .composer button {
+    padding-inline: 10px;
   }
 }

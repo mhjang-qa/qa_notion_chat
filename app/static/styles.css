@@ -18,8 +18,9 @@
 html,
 body {
   width: 100%;
+  height: 100%;
   min-width: 0;
-  min-height: 1800px;
+  min-height: 0;
   overflow-x: hidden;
 }
 
@@ -30,7 +31,7 @@ body {
   font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", "Segoe UI", sans-serif;
   display: flex;
   justify-content: center;
-  overflow-y: auto;
+  overflow: hidden;
 }
 
 button,
@@ -64,8 +65,9 @@ h1 {
   width: min(100%, 1120px);
   max-width: 100%;
   min-width: 0;
-  min-height: 1800px;
-  height: auto;
+  min-height: 0;
+  height: 100vh;
+  height: 100dvh;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
@@ -471,7 +473,7 @@ h1 {
   }
 
   .chat-header {
-    min-height: 96px;
+    min-height: 88px;
     padding: 12px;
     gap: 12px;
   }
@@ -485,9 +487,9 @@ h1 {
   }
 
   .header-avatar {
-    width: 82px;
-    height: 82px;
-    flex-basis: 82px;
+    width: 72px;
+    height: 72px;
+    flex-basis: 72px;
   }
 
   .header-actions {
@@ -527,6 +529,7 @@ h1 {
 @media (max-width: 420px) {
   .chat-header {
     align-items: flex-start;
+    gap: 10px;
   }
 
   .header-avatar {
@@ -544,8 +547,7 @@ h1 {
   }
 
   .header-actions {
-    width: 100%;
-    margin-left: 80px;
+    margin-left: 0;
   }
 
   .composer {

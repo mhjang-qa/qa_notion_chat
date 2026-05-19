@@ -9,6 +9,7 @@
   --accent-strong: #0d5f59;
   --danger: #b42318;
   --shadow: 0 18px 60px rgba(23, 32, 51, 0.18);
+  --app-height: 100vh;
 }
 
 * {
@@ -66,8 +67,7 @@ h1 {
   max-width: 100%;
   min-width: 0;
   min-height: 0;
-  height: 100vh;
-  height: 100dvh;
+  height: var(--app-height);
   margin: 0 auto;
   display: flex;
   flex-direction: column;
@@ -381,7 +381,7 @@ h1 {
   min-width: 0;
   display: flex;
   gap: 10px;
-  padding: 14px clamp(16px, 4vw, 56px);
+  padding: 14px clamp(16px, 4vw, 56px) calc(14px + env(safe-area-inset-bottom));
   border-top: 1px solid var(--line);
   background: var(--panel);
 }
@@ -503,7 +503,7 @@ h1 {
   }
 
   .messages {
-    padding: 14px 12px;
+    padding: 12px;
   }
 
   .msg-avatar {
@@ -522,7 +522,8 @@ h1 {
   }
 
   .composer {
-    padding: 10px;
+    gap: 8px;
+    padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
   }
 }
 
@@ -542,6 +543,11 @@ h1 {
     font-size: 20px;
   }
 
+  .chat-header span,
+  .chat-header small {
+    line-height: 1.3;
+  }
+
   .chat-header span {
     font-size: 11px;
   }
@@ -551,10 +557,16 @@ h1 {
   }
 
   .composer {
-    gap: 8px;
+    align-items: flex-end;
+  }
+
+  .composer textarea {
+    min-height: 42px;
   }
 
   .composer button {
-    padding-inline: 10px;
+    flex: 0 0 auto;
+    min-height: 42px;
+    padding-inline: 12px;
   }
 }

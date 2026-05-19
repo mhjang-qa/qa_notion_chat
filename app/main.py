@@ -8,6 +8,7 @@ from fastapi import FastAPI, Form, Request, Response
 from fastapi.responses import HTMLResponse, RedirectResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 
@@ -82,6 +83,16 @@ class AuthGateMiddleware(BaseHTTPMiddleware):
 
 
 app.add_middleware(AuthGateMiddleware)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "https://mhjang-qa.github.io",
+        "http://127.0.0.1:8020",
+        "http://localhost:8020",
+    ],
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["*"],
+)
 app.add_middleware(
     SessionMiddleware,
     secret_key=config.SESSION_SECRET,

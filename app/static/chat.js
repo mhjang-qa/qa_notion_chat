@@ -3,6 +3,8 @@ const question = document.getElementById("question");
 const btnSend = document.getElementById("btnSend");
 const btnSync = document.getElementById("btnSync");
 const syncStatus = document.getElementById("syncStatus");
+const API_BASE = (window.HYO_CHAT_API_BASE || "").replace(/\/$/, "");
+const ASSET_BASE = (window.HYO_CHAT_ASSET_BASE || "").replace(/\/$/, "");
 
 let inFlight = false;
 let syncing = false;
@@ -14,6 +16,14 @@ function applyViewportHeight() {
   if (height > 0) {
     document.documentElement.style.setProperty("--app-height", `${height}px`);
   }
+}
+
+function apiUrl(path) {
+  return `${API_BASE}${path}`;
+}
+
+function assetUrl(path) {
+  return `${ASSET_BASE}${path}`;
 }
 
 const reportTargets = {
@@ -66,7 +76,7 @@ function addMessage(role, text) {
   if (role === "bot") {
     const avatar = document.createElement("img");
     avatar.className = "hanq-avatar msg-avatar";
-    avatar.src = "/static/hanq.png";
+    avatar.src = assetUrl("/static/hanq.png");
     avatar.alt = "HanQ";
     row.appendChild(avatar);
   }
@@ -282,7 +292,7 @@ function showAttachmentStep() {
     drop.classList.add("uploading");
     status.textContent = "Notion에 파일을 업로드하는 중입니다.";
     try {
-      const res = await fetch("/api/bug-report/files", { method: "POST", body: form });
+      const res = await fetch(apiUrl("/api/bug-report/files"), { method: "POST", body: form });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         status.textContent = `업로드 실패: ${data.detail || `HTTP ${res.status}`}`;
@@ -368,7 +378,7 @@ function showConfirmStep() {
 async function submitReport() {
   const loading = addMessage("bot", "Notion에 결함 제보를 등록하는 중입니다.");
   try {
-    const res = await fetch("/api/bug-report", {
+    const res = await fetch(apiUrl("/api/bug-report"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -486,7 +496,7 @@ async function handleReportInput(text) {
 
 async function refreshStatus() {
   try {
-    const res = await fetch("/api/status");
+    const res = await fetch(apiUrl("/api/status"));
     if (!res.ok) return;
     const data = await res.json();
     const text = data.synced_at
@@ -506,7 +516,7 @@ async function syncNotion() {
   syncStatus.textContent = "동기화 중";
 
   try {
-    const res = await fetch("/api/sync/priority", { method: "POST" });
+    const res = await fetch(apiUrl("/api/sync/priority"), { method: "POST" });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
       const detail = data.detail || `HTTP ${res.status}`;
@@ -566,7 +576,7 @@ async function sendQuestion() {
   const loading = addMessage("bot", "답변을 준비하고 있습니다.");
 
   try {
-    const res = await fetch("/api/chat", {
+    const res = await fetch(apiUrl("/api/chat"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ question: text }),

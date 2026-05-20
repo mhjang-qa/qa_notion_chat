@@ -19,7 +19,7 @@ from app.services.notion_tree import sync_priority_pages
 BASE_DIR = Path(__file__).resolve().parent
 templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 
-app = FastAPI(title="QA Notion Chatbot")
+app = FastAPI(title="Bug Fairy BUNI")
 
 @app.middleware("http")
 async def allow_iframe_embed(request: Request, call_next):

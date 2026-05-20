@@ -77,7 +77,7 @@ function addMessage(role, text) {
     const avatar = document.createElement("img");
     avatar.className = "hanq-avatar msg-avatar";
     avatar.src = assetUrl("/static/hanq.png");
-    avatar.alt = "HanQ";
+    avatar.alt = "BUNI";
     row.appendChild(avatar);
   }
   const bubble = document.createElement("div");
@@ -635,5 +635,5 @@ window.visualViewport?.addEventListener("resize", applyViewportHeight);
 
 applyViewportHeight();
 
-typeText(addMessage("bot", ""), "안녕하세요. QA 전용 챗봇 Hyo.Chat 입니다.\n사용 방법이 궁금하시면 '사용가이드'를 입력해주세요.\n결함 제보의 경우 '결함 제보'를 입력해주세요.", 20);
+typeText(addMessage("bot", ""), "안녕하세요. QA팀과 함께 일하는 버그요정 버니(BUNI)입니다.\n사용 방법이 궁금하시면 '사용가이드'를 입력해주세요.\n결함 제보의 경우 '결함 제보'를 입력해주세요.", 20);
 refreshStatus();

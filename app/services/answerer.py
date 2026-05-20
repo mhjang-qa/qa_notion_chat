@@ -13,9 +13,9 @@ NOT_FOUND = "요청한 조건과 일치하는 내용을 QA Notion에서 찾지 �
 
 
 _GREETING_RE = re.compile(r"^(안녕|안녕하세요|하이|hi|hello|헬로|ㅎㅇ|반가워)[.!?~\s]*$", re.IGNORECASE)
-_CALL_RE = re.compile(r"^(hanq|한큐|큐|하니|봇|챗봇)[.!?~\s]*$", re.IGNORECASE)
+_CALL_RE = re.compile(r"^(buni|버니|버그요정|hanq|한큐|큐|하니|봇|챗봇)[.!?~\s]*$", re.IGNORECASE)
 _CASUAL_CHAT_RE = re.compile(
-    r"(너|넌|너는|한큐|hanq|hyo\.?chat|챗봇|봇).*(뭐야|누구|정체|사람|ai|인공지능|닮|같아|예쁘|이쁘|귀엽|기분|나이|취미)|"
+    r"(너|넌|너는|버니|buni|버그요정|한큐|hanq|hyo\.?chat|챗봇|봇).*(뭐야|누구|정체|사람|ai|인공지능|닮|같아|예쁘|이쁘|귀엽|기분|나이|취미)|"
     r"(잡담|심심|놀아줘|농담|기분\s*어때|점심|저녁|뭐\s*먹|누구를\s*닮|누구\s*닮)",
     re.IGNORECASE,
 )
@@ -97,7 +97,7 @@ def _fixed_response(question: str) -> dict | None:
 
     if _GREETING_RE.match(raw) or _CALL_RE.match(raw):
         return {
-            "answer": "안녕하세요. QA 전용 챗봇 Hyo.Chat 입니다.\n저는 QA Notion에 정리된 테스트 계획, 테스트 결과, 결함/이슈\n노션 내용을 기준으로 답변합니다.",
+            "answer": "안녕하세요. QA팀과 함께 일하는 버그요정 버니(BUNI)입니다.\n저는 QA Notion에 정리된 테스트 계획, 테스트 결과, 결함/이슈\n노션 내용을 기준으로 빠르게 도와드립니다.",
             "sources": [],
             "origin": "SYSTEM",
             "mode": "greeting",
@@ -114,7 +114,7 @@ def _fixed_response(question: str) -> dict | None:
     if any(keyword in compact for keyword in [_compact(k) for k in _HELP_KEYWORDS]):
         return {
             "answer": (
-                "Hyo.Chat 사용법입니다.\n"
+                "버그요정 버니(BUNI) 사용법입니다.\n"
                 "1. QA 문서에 있는 키워드로 질문하세요. 예: `5.20.0 테스트 결과`, `현재 진행 중인 테스트`, `결함 현황`.\n"
                 "2. 테스트 결과서, 테스트 계획서, 결함/이슈는 우선 검색 영역으로 조회합니다.\n"
                 "3. `결함제보`라고 입력하면 단계별로 제보 내용을 받아 Notion에 등록합니다.\n"
@@ -150,7 +150,7 @@ def _casual_chat_response(question: str) -> dict:
     compact = _compact(question)
     if any(token in compact for token in ("뭐야", "누구", "정체", "ai", "인공지능")):
         answer = (
-            "저는 QA Notion 문서를 기준으로 답변하는 Hyo.Chat입니다.\n"
+            "저는 QA Notion 문서를 기준으로 답변하는 버그요정 버니(BUNI)입니다.\n"
             "일상 대화나 개인적인 판단은 정해진 범위 밖이라 길게 답하긴 어렵습니다.\n"
             "대신 `진행중인 테스트 항목`, `시작 전 테스트 항목`, `결함 현황`, `결함 제보`처럼 QA 업무 질문을 주시면 확인해드릴게요."
         )

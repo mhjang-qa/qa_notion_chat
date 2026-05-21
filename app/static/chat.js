@@ -104,7 +104,7 @@ function sourceBlock(sources) {
     link.target = "_blank";
     link.rel = "noopener noreferrer";
     link.className = "source-button";
-    link.textContent = sources.length > 1 ? `노션 바로가기 ${index + 1}` : "노션 바로가기";
+    link.textContent = source.button_label || (sources.length > 1 ? `노션 바로가기 ${index + 1}` : "노션 바로가기");
     link.title = source.title || "Notion 원문";
     wrap.appendChild(link);
   });

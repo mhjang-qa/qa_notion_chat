@@ -40,6 +40,11 @@ _REPORT_RE = re.compile(
     r"결함\s*(제보|등록|신고|접수)|버그\s*(제보|등록|신고|접수)|오류\s*(제보|등록|신고|접수)|이슈\s*(제보|등록|신고|접수)|장애\s*(제보|등록|신고|접수)",
     re.IGNORECASE,
 )
+_REPORT_GUIDE_RE = re.compile(
+    r"(결함|버그|오류|이슈|장애)\s*(제보|등록|신고|접수).*(가이드|방법|어떻게|절차|프로세스|안내|링크)|"
+    r"(가이드|방법|어떻게|절차|프로세스|안내|링크).*(결함|버그|오류|이슈|장애)\s*(제보|등록|신고|접수)",
+    re.IGNORECASE,
+)
 _DEFECT_STATUS_RE = re.compile(r"(현재)?\s*(결함|이슈|버그|장애)\s*(현황|상태|요약|summary)", re.IGNORECASE)
 _CURRENT_WORK_RE = re.compile(
     r"(현재|지금|진행\s*중|진행중).*(테스트|업무|항목|현황)|"
@@ -94,6 +99,36 @@ def _fixed_response(question: str) -> dict | None:
 
     if _CASUAL_CHAT_RE.search(raw):
         return _casual_chat_response(raw)
+
+    if _REPORT_GUIDE_RE.search(raw) or any(
+        token in compact
+        for token in (
+            "결함제보가이드",
+            "버그제보가이드",
+            "이슈제보가이드",
+            "결함제보방법",
+            "버그제보방법",
+            "결함제보어떻게",
+            "버그제보어떻게",
+        )
+    ):
+        guide_url = "https://mhjang-qa.github.io/qa_notion_chat/bug_report_guide.html"
+        return {
+            "answer": (
+                "결함 제보 방법은 전용 가이드에서 바로 확인할 수 있습니다.\n"
+                "아래 버튼으로 `결함 제보 가이드`를 열어 주세요.\n"
+                "실제 제보를 바로 시작하려면 채팅창에 `결함 제보`를 입력해 주세요."
+            ),
+            "sources": [
+                {
+                    "title": "결함 제보 가이드",
+                    "url": guide_url,
+                    "button_label": "결함 제보 가이드 열기",
+                }
+            ],
+            "origin": "SYSTEM",
+            "mode": "bug_report_guide_link",
+        }
 
     if _GREETING_RE.match(raw) or _CALL_RE.match(raw):
         return {

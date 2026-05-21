@@ -381,15 +381,18 @@ def _defect_count_status_group(status: str) -> str:
 
 
 def _defect_service_group(page: dict) -> str:
+    text = str(page.get("text") or "")
+    if re.search(r"^(?:목표버전|타겟 정보|타겟 버전|타겟버전)\s*:\s*\[G\.H\]", text, re.M | re.I):
+        return "Go.Hanpass"
     haystack = "\n".join(
         [
             str(page.get("title") or ""),
-            str(page.get("text") or ""),
+            text,
             " > ".join(str(x) for x in (page.get("path") or [])),
         ]
     ).lower()
-    if re.search(r"go\s*hanpass|gohanpass|go\.hanpass|방한\s*홈|방한홈", haystack, re.IGNORECASE):
-        return "go hanpass"
+    if re.search(r"go\s*hanpass|gohanpass|go\.hanpass", haystack, re.IGNORECASE):
+        return "Go.Hanpass"
     return "한패스"
 
 
@@ -534,7 +537,7 @@ def _defect_status_summary() -> dict:
     groups = {
         "전체": Counter(),
         "한패스": Counter(),
-        "go hanpass": Counter(),
+        "Go.Hanpass": Counter(),
     }
     for page in pages:
         if not isinstance(page, dict):
@@ -560,7 +563,7 @@ def _defect_status_summary() -> dict:
         "현재까지 등록된 결함 개수 요약입니다.\n\n"
         f"{line('전체', groups['전체'])}\n"
         f"{line('한패스', groups['한패스'])}\n"
-        f"{line('go hanpass', groups['go hanpass'])}\n\n"
+        f"{line('Go.Hanpass', groups['Go.Hanpass'])}\n\n"
         "특정 항목을 자세히 보려면 `상세 결함 검색 \"검색어\"` 형식으로 입력해 주세요.\n"
         "예: `상세 결함 검색 회원가입`, `상세 결함 검색 5.20.0`"
     )

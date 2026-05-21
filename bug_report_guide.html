@@ -37,14 +37,14 @@
     }
 
     body {
-      padding: 10px;
+      padding: 8px;
     }
 
     .guide-shell {
-      width: min(1560px, 100%);
+      width: min(1660px, 100%);
       margin: 0 auto;
       display: grid;
-      gap: 12px;
+      gap: 8px;
     }
 
     .guide-hero,
@@ -59,8 +59,8 @@
     .guide-hero {
       display: grid;
       grid-template-columns: 1fr;
-      gap: 8px;
-      padding: 16px 18px;
+      gap: 4px;
+      padding: 12px 14px;
     }
 
     .eyebrow {
@@ -69,7 +69,7 @@
       gap: 8px;
       margin: 0 0 10px;
       color: var(--guide-accent);
-      font-size: 12px;
+      font-size: 10px;
       font-weight: 800;
       letter-spacing: 0.08em;
       text-transform: uppercase;
@@ -85,16 +85,16 @@
     }
 
     .guide-hero h3 {
-      margin: 0 0 6px;
-      font-size: clamp(20px, 1.9vw, 26px);
+      margin: 0 0 3px;
+      font-size: clamp(18px, 1.6vw, 23px);
       line-height: 1.15;
     }
 
     .guide-hero p {
       margin: 0;
       color: var(--guide-muted);
-      font-size: 15px;
-      line-height: 1.65;
+      font-size: 13px;
+      line-height: 1.55;
     }
 
     .hero-panel {
@@ -123,7 +123,7 @@
     .hero-panel h2,
     .guide-note h2 {
       margin: 0;
-      font-size: 18px;
+      font-size: 17px;
     }
 
     .hero-panel ul {
@@ -135,22 +135,22 @@
 
     .guide-stage {
       display: grid;
-      grid-template-columns: 224px minmax(0, 1fr);
-      gap: 12px;
-      padding: 10px;
+      grid-template-columns: 182px minmax(0, 1fr);
+      gap: 8px;
+      padding: 8px;
     }
 
     .stage-side,
     .stage-main {
       display: grid;
-      gap: 12px;
+      gap: 8px;
       align-content: start;
       min-width: 0;
     }
 
     .stage-side {
       position: sticky;
-      top: 10px;
+      top: 8px;
       align-self: start;
       max-height: calc(100dvh - 20px);
       overflow: auto;
@@ -160,16 +160,16 @@
     .step-meter,
     .buni-note,
     .coach-caption {
-      padding: 14px;
+      padding: 10px;
       border: 1px solid var(--guide-line);
       border-radius: 8px;
       background: #fff;
     }
 
     .step-kicker {
-      margin: 0 0 12px;
+      margin: 0 0 10px;
       color: var(--guide-muted);
-      font-size: 12px;
+      font-size: 10px;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.08em;
@@ -178,36 +178,36 @@
     .step-indicator {
       display: flex;
       align-items: flex-end;
-      gap: 10px;
-      margin-bottom: 12px;
+      gap: 6px;
+      margin-bottom: 8px;
     }
 
     .step-indicator strong {
-      font-size: 34px;
+      font-size: 28px;
       line-height: 1;
     }
 
     .step-indicator span {
       color: var(--guide-muted);
-      font-size: 14px;
+      font-size: 12px;
       line-height: 1.2;
     }
 
     .step-list {
       display: grid;
-      gap: 8px;
+      gap: 6px;
     }
 
     .step-list button {
       width: 100%;
-      min-height: 40px;
-      padding: 9px 10px;
+      min-height: 34px;
+      padding: 7px 8px;
       border: 1px solid var(--guide-line);
       border-radius: 8px;
       background: #fff;
       color: var(--guide-ink);
       text-align: left;
-      font-size: 12px;
+      font-size: 10px;
       font-weight: 700;
       cursor: pointer;
     }
@@ -239,8 +239,8 @@
 
     .buni-note strong {
       display: block;
-      margin-bottom: 6px;
-      font-size: 15px;
+      margin-bottom: 3px;
+      font-size: 13px;
     }
 
     .buni-note p,
@@ -248,7 +248,8 @@
     .guide-note p {
       margin: 0;
       color: var(--guide-muted);
-      line-height: 1.5;
+      line-height: 1.35;
+      font-size: 10px;
     }
 
     .coach-caption strong {
@@ -258,7 +259,7 @@
     .demo-layout {
       display: grid;
       grid-template-columns: minmax(0, 1fr) 216px;
-      gap: 12px;
+      gap: 8px;
       align-items: start;
     }
 
@@ -267,7 +268,7 @@
       flex-direction: column;
       align-items: stretch;
       justify-content: flex-start;
-      gap: 8px;
+      gap: 4px;
       width: 216px;
       position: sticky;
       top: 10px;
@@ -276,7 +277,7 @@
 
     .chat-demo-card {
       position: relative;
-      padding: 60px 14px 14px;
+      padding: 40px 10px 10px;
       border: 1px solid var(--guide-line);
       border-radius: 8px;
       background: linear-gradient(180deg, rgba(238, 244, 255, 0.55), #fff);
@@ -286,19 +287,19 @@
     .chat-demo-card::before {
       content: "결함 제보 예시";
       position: absolute;
-      top: 12px;
-      left: 14px;
+      top: 8px;
+      left: 10px;
       color: var(--guide-muted);
-      font-size: 12px;
+      font-size: 10px;
       font-weight: 700;
     }
 
     .coach-bubble {
       position: absolute;
-      left: 12px;
-      top: 12px;
-      max-width: min(300px, calc(100% - 24px));
-      padding: 11px 12px;
+      left: 8px;
+      top: 8px;
+      max-width: min(300px, calc(100% - 16px));
+      padding: 9px 10px;
       border: 1px solid var(--guide-line);
       border-radius: 8px;
       background: rgba(255, 255, 255, 0.98);
@@ -316,20 +317,20 @@
 
     .coach-bubble strong {
       display: block;
-      margin-bottom: 4px;
-      font-size: 12px;
+      margin-bottom: 2px;
+      font-size: 10px;
     }
 
     .coach-bubble p {
       margin: 0;
       color: var(--guide-muted);
-      font-size: 11px;
-      line-height: 1.45;
+      font-size: 9px;
+      line-height: 1.3;
     }
 
     .chat-demo {
       display: grid;
-      gap: 16px;
+      gap: 10px;
       border: 1px solid var(--guide-line);
       border-radius: 8px;
       background: linear-gradient(180deg, rgba(238, 244, 255, 0.55), #f9fbff 36%, #eef3fb 100%);
@@ -340,21 +341,21 @@
       display: flex;
       align-items: center;
       gap: 12px;
-      padding: 12px 14px;
+      padding: 8px 10px;
       border-bottom: 1px solid var(--guide-line);
       background: rgba(255, 255, 255, 0.92);
     }
 
     .chat-demo-header strong {
       display: block;
-      margin-bottom: 4px;
-      font-size: 14px;
+      margin-bottom: 2px;
+      font-size: 12px;
     }
 
     .chat-demo-header div:last-child {
       color: var(--guide-muted);
-      font-size: 11px;
-      line-height: 1.5;
+      font-size: 9px;
+      line-height: 1.3;
     }
 
     .chat-demo-badge,
@@ -368,16 +369,16 @@
     }
 
     .chat-demo-badge {
-      width: 34px;
-      height: 34px;
+      width: 30px;
+      height: 30px;
       border-radius: 14px;
-      font-size: 11px;
+      font-size: 9px;
     }
 
     .chat-log {
       display: grid;
-      gap: 10px;
-      padding: 12px 14px;
+      gap: 6px;
+      padding: 8px 10px;
     }
 
     .message-row {
@@ -403,20 +404,20 @@
     }
 
     .message-avatar {
-      width: 28px;
-      height: 28px;
-      flex: 0 0 28px;
+      width: 24px;
+      height: 24px;
+      flex: 0 0 24px;
       border-radius: 12px;
-      font-size: 11px;
+      font-size: 9px;
     }
 
     .message-bubble {
-      max-width: min(620px, calc(100% - 34px));
-      padding: 11px 12px;
+      max-width: min(620px, calc(100% - 32px));
+      padding: 9px 10px;
       border: 1px solid var(--guide-line);
       border-radius: 8px;
       background: #fff;
-      line-height: 1.45;
+      line-height: 1.3;
       color: var(--guide-ink);
       box-shadow: 0 10px 24px rgba(21, 32, 51, 0.06);
     }
@@ -429,20 +430,20 @@
     .reply-chip-row {
       display: flex;
       flex-wrap: wrap;
-      gap: 6px;
-      margin-top: 10px;
+      gap: 4px;
+      margin-top: 6px;
     }
 
     .reply-chip {
       display: inline-flex;
       align-items: center;
-      min-height: 30px;
-      padding: 0 10px;
+      min-height: 26px;
+      padding: 0 8px;
       border: 1px solid rgba(17, 120, 111, 0.24);
       border-radius: 999px;
       background: rgba(17, 120, 111, 0.08);
       color: var(--guide-accent-strong);
-      font-size: 11px;
+      font-size: 9px;
       font-weight: 700;
     }
 
@@ -456,28 +457,28 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      min-height: 54px;
-      margin-top: 10px;
-      padding: 9px 10px;
+      min-height: 44px;
+      margin-top: 6px;
+      padding: 7px 8px;
       border: 1px dashed rgba(17, 120, 111, 0.34);
       border-radius: 8px;
       background: rgba(17, 120, 111, 0.04);
       color: var(--guide-accent-strong);
       text-align: center;
-      font-size: 11px;
+      font-size: 9px;
     }
 
     .summary-title {
       display: block;
-      margin-bottom: 10px;
+      margin-bottom: 6px;
     }
 
     .summary-grid {
       display: grid;
-      grid-template-columns: 72px minmax(0, 1fr);
-      gap: 5px 8px;
-      font-size: 11px;
-      line-height: 1.45;
+      grid-template-columns: 60px minmax(0, 1fr);
+      gap: 3px 6px;
+      font-size: 9px;
+      line-height: 1.25;
     }
 
     .summary-grid span:nth-child(odd) {
@@ -486,31 +487,31 @@
     }
 
     .notion-result {
-      margin-top: 10px;
-      padding: 9px 10px;
+      margin-top: 6px;
+      padding: 7px 8px;
       border: 1px solid rgba(17, 120, 111, 0.24);
       border-radius: 8px;
       background: rgba(17, 120, 111, 0.08);
       color: var(--guide-accent-strong);
-      font-size: 11px;
+      font-size: 9px;
       font-weight: 700;
     }
 
     .chat-input-bar {
       display: flex;
-      gap: 10px;
+      gap: 6px;
       align-items: center;
-      padding: 10px 12px 12px;
+      padding: 7px 8px 8px;
       border-top: 1px solid rgba(215, 223, 235, 0.9);
       background: rgba(255, 255, 255, 0.88);
     }
 
     .chat-input {
       flex: 1 1 auto;
-      min-height: 40px;
+      min-height: 36px;
       display: flex;
       align-items: center;
-      padding: 0 10px;
+      padding: 0 8px;
       border: 1px solid var(--guide-line);
       border-radius: 8px;
       background: #fff;
@@ -538,10 +539,20 @@
       cursor: not-allowed;
     }
 
+    .guide-tip {
+      padding: 8px 10px;
+      border: 1px solid var(--guide-line);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.94);
+      color: var(--guide-muted);
+      font-size: 9px;
+      line-height: 1.3;
+    }
+
     .guide-note {
-      padding: 14px 16px;
+      padding: 0;
       display: grid;
-      gap: 6px;
+      gap: 3px;
     }
 
     @media (max-width: 980px) {
@@ -767,14 +778,10 @@
             <button type="button" id="prevStep">이전</button>
             <button type="button" class="primary" id="nextStep">다음</button>
             <button type="button" id="restartStep">처음부터 보기</button>
+            <div class="guide-tip">등록 이후에는 QA 검토를 거쳐 결함 등록 또는 반려가 진행될 수 있으며, 정보가 부족하면 보완 요청이 이어질 수 있습니다.</div>
           </div>
         </div>
       </section>
-    </section>
-
-    <section class="guide-note">
-      <h2>등록 이후</h2>
-      <p>최종 `등록`까지 완료하면 챗봇이 Notion 제보함에 페이지를 생성합니다. 이후에는 QA 검토를 거쳐 결함 등록 또는 반려가 진행될 수 있으며, 정보가 부족하면 보완 요청이 이어질 수 있습니다.</p>
     </section>
   </main>
 

@@ -72,7 +72,17 @@ class AuthGateMiddleware(BaseHTTPMiddleware):
         if not config.AUTH_REQUIRED:
             return await call_next(request)
         path = request.url.path
-        public_paths = {"/", "/login", "/logout", "/health", "/healthz", "/favicon.ico", "/bug-report-guide"}
+        public_paths = {
+            "/",
+            "/login",
+            "/logout",
+            "/health",
+            "/healthz",
+            "/favicon.ico",
+            "/bug-report-guide",
+            "/bug-report-guide.html",
+            "/bug_report_guide.html",
+        }
         if path in public_paths or path.startswith("/static"):
             return await call_next(request)
         if not request.session.get("auth"):
@@ -158,5 +168,7 @@ def favicon():
 
 
 @app.get("/bug-report-guide")
+@app.get("/bug-report-guide.html")
+@app.get("/bug_report_guide.html")
 def bug_report_guide():
     return FileResponse(BASE_DIR / "static" / "bug_report_guide.html")

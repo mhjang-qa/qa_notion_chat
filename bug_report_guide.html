@@ -1,0 +1,862 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>버그요정 버니의 결함 제보 가이드</title>
+  <style>
+    :root {
+      --guide-bg: #f4f7fb;
+      --guide-surface: rgba(255, 255, 255, 0.96);
+      --guide-soft: #eef4ff;
+      --guide-ink: #152033;
+      --guide-muted: #62708a;
+      --guide-line: #d7dfeb;
+      --guide-accent: #11786f;
+      --guide-accent-strong: #0f6159;
+      --guide-accent-soft: rgba(17, 120, 111, 0.12);
+      --guide-warn: #fff1dd;
+      --guide-shadow: 0 18px 48px rgba(21, 32, 51, 0.08);
+      --guide-spotlight: 0 0 0 3px rgba(17, 120, 111, 0.92), 0 0 0 12px rgba(17, 120, 111, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      min-height: 100%;
+      background:
+        radial-gradient(circle at top left, rgba(17, 120, 111, 0.08), transparent 24%),
+        radial-gradient(circle at top right, rgba(70, 116, 255, 0.08), transparent 24%),
+        var(--guide-bg);
+      color: var(--guide-ink);
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", "Segoe UI", sans-serif;
+    }
+
+    body {
+      padding: 24px;
+    }
+
+    .guide-shell {
+      width: min(1120px, 100%);
+      margin: 0 auto;
+      display: grid;
+      gap: 20px;
+    }
+
+    .guide-hero,
+    .guide-stage,
+    .guide-note {
+      border: 1px solid var(--guide-line);
+      border-radius: 8px;
+      background: var(--guide-surface);
+      box-shadow: var(--guide-shadow);
+    }
+
+    .guide-hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(260px, 0.8fr);
+      gap: 18px;
+      padding: 28px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 0 10px;
+      color: var(--guide-accent);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--guide-accent);
+      box-shadow: 0 0 0 6px var(--guide-accent-soft);
+    }
+
+    .guide-hero h1 {
+      margin: 0 0 10px;
+      font-size: clamp(30px, 4.4vw, 46px);
+      line-height: 1.08;
+    }
+
+    .guide-hero p {
+      margin: 0;
+      color: var(--guide-muted);
+      font-size: 16px;
+      line-height: 1.65;
+    }
+
+    .hero-panel {
+      display: grid;
+      gap: 14px;
+      align-content: start;
+      padding: 18px;
+      border: 1px solid var(--guide-line);
+      border-radius: 8px;
+      background: linear-gradient(180deg, rgba(17, 120, 111, 0.08), rgba(255, 255, 255, 0.96));
+    }
+
+    .buni-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 64px;
+      height: 64px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, #13847a, #4d9cf4);
+      color: #fff;
+      font-size: 22px;
+      font-weight: 900;
+    }
+
+    .hero-panel h2,
+    .guide-note h2 {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    .hero-panel ul {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--guide-muted);
+      line-height: 1.7;
+    }
+
+    .guide-stage {
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+      gap: 18px;
+      padding: 20px;
+    }
+
+    .stage-side,
+    .stage-main {
+      display: grid;
+      gap: 16px;
+      align-content: start;
+      min-width: 0;
+    }
+
+    .step-meter,
+    .buni-note,
+    .coach-caption {
+      padding: 18px;
+      border: 1px solid var(--guide-line);
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    .step-kicker {
+      margin: 0 0 12px;
+      color: var(--guide-muted);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .step-indicator {
+      display: flex;
+      align-items: flex-end;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .step-indicator strong {
+      font-size: 42px;
+      line-height: 1;
+    }
+
+    .step-indicator span {
+      color: var(--guide-muted);
+      font-size: 16px;
+      line-height: 1.2;
+    }
+
+    .step-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .step-list button,
+    .guide-controls button {
+      width: 100%;
+      min-height: 44px;
+      padding: 12px 14px;
+      border: 1px solid var(--guide-line);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--guide-ink);
+      text-align: left;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .step-list button.active {
+      border-color: var(--guide-accent);
+      background: rgba(17, 120, 111, 0.1);
+      color: var(--guide-accent-strong);
+    }
+
+    .buni-note {
+      background: var(--guide-warn);
+    }
+
+    .buni-note strong {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 15px;
+    }
+
+    .buni-note p,
+    .coach-caption p,
+    .guide-note p {
+      margin: 0;
+      color: var(--guide-muted);
+      line-height: 1.7;
+    }
+
+    .coach-caption strong {
+      color: var(--guide-ink);
+    }
+
+    .chat-demo-card {
+      position: relative;
+      padding: 84px 22px 22px;
+      border: 1px solid var(--guide-line);
+      border-radius: 8px;
+      background: linear-gradient(180deg, rgba(238, 244, 255, 0.55), #fff);
+      overflow: hidden;
+    }
+
+    .chat-demo-card::before {
+      content: "결함 제보 예시";
+      position: absolute;
+      top: 18px;
+      left: 22px;
+      color: var(--guide-muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .coach-bubble {
+      position: absolute;
+      left: 20px;
+      top: 18px;
+      max-width: min(320px, calc(100% - 40px));
+      padding: 14px 16px;
+      border: 1px solid var(--guide-line);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.98);
+      box-shadow: 0 14px 28px rgba(21, 32, 51, 0.12);
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(4px);
+      transition: opacity 150ms ease, transform 150ms ease;
+    }
+
+    .coach-bubble.active {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .coach-bubble strong {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 14px;
+    }
+
+    .coach-bubble p {
+      margin: 0;
+      color: var(--guide-muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .chat-demo {
+      display: grid;
+      gap: 16px;
+      border: 1px solid var(--guide-line);
+      border-radius: 8px;
+      background: linear-gradient(180deg, rgba(238, 244, 255, 0.55), #f9fbff 36%, #eef3fb 100%);
+      overflow: hidden;
+    }
+
+    .chat-demo-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--guide-line);
+      background: rgba(255, 255, 255, 0.92);
+    }
+
+    .chat-demo-header strong {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 16px;
+    }
+
+    .chat-demo-header div:last-child {
+      color: var(--guide-muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .chat-demo-badge,
+    .message-avatar {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-weight: 900;
+      background: linear-gradient(135deg, #13847a, #4d9cf4);
+    }
+
+    .chat-demo-badge {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      font-size: 13px;
+    }
+
+    .chat-log {
+      display: grid;
+      gap: 14px;
+      padding: 18px;
+    }
+
+    .message-row {
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+      opacity: 0.42;
+      transition: opacity 140ms ease, transform 140ms ease;
+    }
+
+    .message-row.active {
+      opacity: 1;
+      transform: translateY(-1px);
+    }
+
+    .message-row.active .message-bubble,
+    .message-row.active .message-avatar {
+      box-shadow: var(--guide-spotlight);
+    }
+
+    .message-row.user {
+      justify-content: flex-end;
+    }
+
+    .message-avatar {
+      width: 34px;
+      height: 34px;
+      flex: 0 0 34px;
+      border-radius: 12px;
+      font-size: 13px;
+    }
+
+    .message-bubble {
+      max-width: min(680px, calc(100% - 44px));
+      padding: 14px 16px;
+      border: 1px solid var(--guide-line);
+      border-radius: 8px;
+      background: #fff;
+      line-height: 1.65;
+      color: var(--guide-ink);
+      box-shadow: 0 10px 24px rgba(21, 32, 51, 0.06);
+    }
+
+    .message-row.user .message-bubble {
+      background: rgba(17, 120, 111, 0.12);
+      border-color: rgba(17, 120, 111, 0.22);
+    }
+
+    .reply-chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .reply-chip {
+      display: inline-flex;
+      align-items: center;
+      min-height: 34px;
+      padding: 0 12px;
+      border: 1px solid rgba(17, 120, 111, 0.24);
+      border-radius: 999px;
+      background: rgba(17, 120, 111, 0.08);
+      color: var(--guide-accent-strong);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .reply-chip.subtle {
+      border-color: var(--guide-line);
+      background: #fff;
+      color: var(--guide-muted);
+    }
+
+    .mock-upload {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 68px;
+      margin-top: 12px;
+      padding: 12px 14px;
+      border: 1px dashed rgba(17, 120, 111, 0.34);
+      border-radius: 8px;
+      background: rgba(17, 120, 111, 0.04);
+      color: var(--guide-accent-strong);
+      text-align: center;
+      font-size: 13px;
+    }
+
+    .summary-title {
+      display: block;
+      margin-bottom: 12px;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: 92px minmax(0, 1fr);
+      gap: 8px 12px;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .summary-grid span:nth-child(odd) {
+      color: var(--guide-muted);
+      font-weight: 700;
+    }
+
+    .notion-result {
+      margin-top: 12px;
+      padding: 12px 14px;
+      border: 1px solid rgba(17, 120, 111, 0.24);
+      border-radius: 8px;
+      background: rgba(17, 120, 111, 0.08);
+      color: var(--guide-accent-strong);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .chat-input-bar {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      padding: 14px 18px 18px;
+      border-top: 1px solid rgba(215, 223, 235, 0.9);
+      background: rgba(255, 255, 255, 0.88);
+    }
+
+    .chat-input {
+      flex: 1 1 auto;
+      min-height: 46px;
+      display: flex;
+      align-items: center;
+      padding: 0 14px;
+      border: 1px solid var(--guide-line);
+      border-radius: 8px;
+      background: #fff;
+      color: #99a4b8;
+    }
+
+    .chat-input-bar button,
+    .guide-controls button.primary {
+      border-color: var(--guide-accent);
+      background: var(--guide-accent);
+      color: #fff;
+      text-align: center;
+    }
+
+    .guide-controls {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .control-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .guide-controls button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .guide-note {
+      padding: 18px 20px;
+      display: grid;
+      gap: 10px;
+    }
+
+    @media (max-width: 980px) {
+      .guide-hero,
+      .guide-stage {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 720px) {
+      body {
+        padding: 12px;
+      }
+
+      .guide-hero,
+      .guide-stage,
+      .guide-note {
+        padding: 16px;
+      }
+
+      .guide-hero h1 {
+        font-size: 28px;
+      }
+
+      .chat-demo-card {
+        padding: 66px 14px 16px;
+      }
+
+      .chat-demo-header,
+      .chat-log,
+      .chat-input-bar {
+        padding-inline: 14px;
+      }
+
+      .coach-bubble {
+        left: 14px;
+        top: 14px;
+        max-width: calc(100% - 28px);
+      }
+
+      .guide-controls,
+      .control-group {
+        width: 100%;
+      }
+
+      .summary-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .message-bubble {
+        max-width: calc(100% - 44px);
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="guide-shell">
+    <section class="guide-hero">
+      <div class="hero-copy">
+        <p class="eyebrow">Bug Fairy BUNI</p>
+        <h1>버그요정 버니의 결함 제보 가이드</h1>
+        <p>정확한 결함 제보는 빠른 재현과 수정의 시작입니다.</p>
+      </div>
+      <aside class="hero-panel">
+        <div class="buni-badge" aria-hidden="true">B</div>
+        <h2>채팅형 제보 흐름</h2>
+        <ul>
+          <li>챗봇에서 `결함 제보`를 입력하면 단계형 수집이 시작됩니다.</li>
+          <li>버니가 묻는 항목만 순서대로 답하면 Notion 제보함까지 등록됩니다.</li>
+          <li>증빙 첨부와 최종 확인 단계까지 마쳐야 등록이 완료됩니다.</li>
+        </ul>
+      </aside>
+    </section>
+
+    <section class="guide-stage">
+      <aside class="stage-side">
+        <div class="step-meter">
+          <p class="step-kicker">현재 단계</p>
+          <div class="step-indicator">
+            <strong id="stepNumber">1</strong>
+            <span id="stepLabel">결함 제보 시작</span>
+          </div>
+          <div class="step-list" id="stepList"></div>
+        </div>
+        <div class="buni-note">
+          <strong>BUNI 메모</strong>
+          <p id="stepSummary">채팅창에 `결함 제보`, `결함 등록`, `이슈 제보`처럼 입력해 주세요. 이 입력이 제보 플로우를 시작합니다.</p>
+        </div>
+      </aside>
+
+      <section class="stage-main">
+        <div class="coach-caption">
+          <p><strong id="captionTitle">1. 결함 제보 시작</strong><br><span id="captionBody">채팅창에 `결함 제보`를 입력하면 버니가 단계형 제보 모드로 전환합니다.</span></p>
+        </div>
+
+        <div class="chat-demo-card">
+          <div class="coach-bubble active" data-step="1">
+            <strong>BUNI</strong>
+            <p>채팅창에 `결함 제보`를 입력해 주세요. 이 입력이 있어야 챗봇이 일반 검색이 아니라 제보 수집 흐름으로 진입합니다.</p>
+          </div>
+          <div class="coach-bubble" data-step="2">
+            <strong>BUNI</strong>
+            <p>어느 서비스의 결함인지 먼저 선택해 주세요. 현재 챗봇은 한패스와 방한홈 제보 플로우를 지원합니다.</p>
+          </div>
+          <div class="coach-bubble" data-step="3">
+            <strong>BUNI</strong>
+            <p>발생 플랫폼을 선택해 주세요. 버튼 선택이 가능하고, 필요하면 텍스트로 여러 값을 입력할 수도 있습니다.</p>
+          </div>
+          <div class="coach-bubble" data-step="4">
+            <strong>BUNI</strong>
+            <p>제보자 이름을 입력해 주세요. Notion 등록 시 제보자 정보와 함께 기록됩니다.</p>
+          </div>
+          <div class="coach-bubble" data-step="5">
+            <strong>BUNI</strong>
+            <p>결함 제목은 증상이 한 줄에 보이게 작성해 주세요. 기능명과 실패 증상을 같이 쓰는 편이 좋습니다.</p>
+          </div>
+          <div class="coach-bubble" data-step="6">
+            <strong>BUNI</strong>
+            <p>제보 내용에는 재현 경로, 기대 결과, 실제 결과를 함께 적어 주세요. 이 단계가 제보 품질을 가장 크게 좌우합니다.</p>
+          </div>
+          <div class="coach-bubble" data-step="7">
+            <strong>BUNI</strong>
+            <p>스크린샷, 영상, 로그 파일을 첨부해 주세요. 파일이 없다면 `첨부 없음`으로 진행할 수 있습니다.</p>
+          </div>
+          <div class="coach-bubble" data-step="8">
+            <strong>BUNI</strong>
+            <p>최종 요약을 확인한 뒤 `등록`을 선택하면 챗봇이 Notion 제보함에 페이지를 생성합니다. 등록 후 QA 검토가 이어집니다.</p>
+          </div>
+
+          <div class="chat-demo">
+            <div class="chat-demo-header">
+              <div class="chat-demo-badge">BUNI</div>
+              <div>
+                <strong>채팅형 결함 제보</strong>
+                <div>버그요정 버니가 순서대로 필요한 항목을 묻습니다.</div>
+              </div>
+            </div>
+
+            <div class="chat-log">
+              <div class="message-row user active" data-step-target="1">
+                <div class="message-bubble user">결함 제보</div>
+              </div>
+
+              <div class="message-row bot" data-step-target="2">
+                <div class="message-avatar">B</div>
+                <div class="message-bubble">
+                  결함 제보를 시작합니다.<br>어느 서비스의 결함인가요?
+                  <div class="reply-chip-row">
+                    <span class="reply-chip">한패스</span>
+                    <span class="reply-chip">방한홈</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="message-row bot" data-step-target="3">
+                <div class="message-avatar">B</div>
+                <div class="message-bubble">
+                  방한홈 결함 제보로 진행합니다.<br>발생 플랫폼을 선택해 주세요.
+                  <div class="reply-chip-row">
+                    <span class="reply-chip">AOS</span>
+                    <span class="reply-chip">iOS</span>
+                    <span class="reply-chip">Web-Chrome</span>
+                    <span class="reply-chip">Web-Safari</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="message-row bot" data-step-target="4">
+                <div class="message-avatar">B</div>
+                <div class="message-bubble">제보자 이름을 입력해 주세요.</div>
+              </div>
+
+              <div class="message-row bot" data-step-target="5">
+                <div class="message-avatar">B</div>
+                <div class="message-bubble">결함 제목을 입력해 주세요.</div>
+              </div>
+
+              <div class="message-row bot" data-step-target="6">
+                <div class="message-avatar">B</div>
+                <div class="message-bubble">제보 내용을 입력해 주세요. 재현 경로, 기대 결과, 실제 결과를 함께 적어주면 좋습니다.</div>
+              </div>
+
+              <div class="message-row bot" data-step-target="7">
+                <div class="message-avatar">B</div>
+                <div class="message-bubble">
+                  <div>첨부파일을 업로드해 주세요. 파일이 없으면 첨부 없음 버튼을 눌러 주세요.</div>
+                  <div class="mock-upload">이곳으로 파일을 드래그해서 업로드해 주세요</div>
+                  <div class="reply-chip-row">
+                    <span class="reply-chip subtle">첨부 없음</span>
+                    <span class="reply-chip">다음</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="message-row bot" data-step-target="8">
+                <div class="message-avatar">B</div>
+                <div class="message-bubble">
+                  <strong class="summary-title">제보 내용을 확인해 주세요.</strong>
+                  <div class="summary-grid">
+                    <span>서비스</span><span>방한홈</span>
+                    <span>플랫폼</span><span>Web-Chrome</span>
+                    <span>제보자</span><span>홍길동</span>
+                    <span>제목</span><span>결제 버튼 클릭 시 결제창 미노출</span>
+                    <span>첨부파일</span><span>payment_error.mp4</span>
+                  </div>
+                  <div class="reply-chip-row">
+                    <span class="reply-chip">등록</span>
+                    <span class="reply-chip subtle">취소</span>
+                  </div>
+                  <div class="notion-result">등록 완료되었습니다. 제보 ID: GO-BR-018</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="chat-input-bar">
+              <div class="chat-input">질문을 입력하세요.</div>
+              <button type="button">전송</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="guide-controls">
+          <div class="control-group">
+            <button type="button" id="prevStep">이전</button>
+            <button type="button" class="primary" id="nextStep">다음</button>
+          </div>
+          <button type="button" id="restartStep">처음부터 보기</button>
+        </div>
+      </section>
+    </section>
+
+    <section class="guide-note">
+      <h2>등록 이후</h2>
+      <p>최종 `등록`까지 완료하면 챗봇이 Notion 제보함에 페이지를 생성합니다. 이후에는 QA 검토를 거쳐 결함 등록 또는 반려가 진행될 수 있으며, 정보가 부족하면 보완 요청이 이어질 수 있습니다.</p>
+    </section>
+  </main>
+
+  <script>
+    const steps = [
+      {
+        title: "결함 제보 시작",
+        summary: "채팅창에 `결함 제보`, `결함 등록`, `이슈 제보`처럼 입력해 주세요. 이 입력이 제보 플로우를 시작합니다.",
+        caption: "채팅창에 `결함 제보`를 입력하면 버니가 단계형 제보 모드로 전환합니다."
+      },
+      {
+        title: "서비스 선택",
+        summary: "버니가 제보 대상 서비스를 묻습니다. 현재 한패스와 방한홈 중 하나를 선택해 주세요.",
+        caption: "서비스 선택이 먼저 있어야 올바른 Notion 제보함으로 연결됩니다."
+      },
+      {
+        title: "플랫폼 선택",
+        summary: "발생 플랫폼을 선택해 주세요. 버튼으로 고를 수 있고, 필요하면 텍스트 입력도 가능합니다.",
+        caption: "플랫폼 정보는 재현과 담당 분류에 직접 쓰입니다."
+      },
+      {
+        title: "제보자 이름 입력",
+        summary: "제보자 이름을 입력해 주세요. 등록 이력과 후속 확인에 사용됩니다.",
+        caption: "QA 검토나 보완 요청이 필요한 경우 제보자 정보가 기준이 됩니다."
+      },
+      {
+        title: "결함 제목 입력",
+        summary: "결함 제목은 한 줄로 증상이 보이게 작성해 주세요. 기능과 실패 증상을 함께 쓰는 편이 좋습니다.",
+        caption: "제목만 보고도 어떤 문제인지 바로 파악할 수 있어야 합니다."
+      },
+      {
+        title: "제보 내용 입력",
+        summary: "재현 경로, 기대 결과, 실제 결과를 함께 입력해 주세요. 이 단계가 제보 품질을 좌우합니다.",
+        caption: "채팅형 제보에서는 이 단계에 핵심 내용을 모아서 입력해 주세요."
+      },
+      {
+        title: "첨부파일 업로드",
+        summary: "스크린샷, 영상, 로그 파일을 첨부해 주세요. 파일이 없으면 `첨부 없음`으로 진행할 수 있습니다.",
+        caption: "드래그 업로드 또는 클릭 업로드 후 `다음`으로 넘어갑니다."
+      },
+      {
+        title: "최종 확인 후 등록",
+        summary: "요약 내용을 확인한 뒤 `등록`을 선택하면 Notion 제보함에 페이지가 생성됩니다.",
+        caption: "등록 완료 메시지와 제보 ID가 표시되면 챗봇 등록은 끝입니다."
+      }
+    ];
+
+    const stepNumber = document.getElementById("stepNumber");
+    const stepLabel = document.getElementById("stepLabel");
+    const stepSummary = document.getElementById("stepSummary");
+    const captionTitle = document.getElementById("captionTitle");
+    const captionBody = document.getElementById("captionBody");
+    const stepList = document.getElementById("stepList");
+    const prevStep = document.getElementById("prevStep");
+    const nextStep = document.getElementById("nextStep");
+    const restartStep = document.getElementById("restartStep");
+    const targets = Array.from(document.querySelectorAll("[data-step-target]"));
+    const bubbles = Array.from(document.querySelectorAll(".coach-bubble"));
+
+    let currentStep = 0;
+
+    function renderStepButtons() {
+      stepList.textContent = "";
+      steps.forEach((step, index) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.textContent = `${index + 1}. ${step.title}`;
+        if (index === currentStep) button.classList.add("active");
+        button.addEventListener("click", () => {
+          currentStep = index;
+          render();
+        });
+        stepList.appendChild(button);
+      });
+    }
+
+    function render() {
+      const step = steps[currentStep];
+      stepNumber.textContent = String(currentStep + 1);
+      stepLabel.textContent = step.title;
+      stepSummary.textContent = step.summary;
+      captionTitle.textContent = `${currentStep + 1}. ${step.title}`;
+      captionBody.textContent = step.caption;
+
+      targets.forEach((target) => {
+        target.classList.toggle("active", Number(target.dataset.stepTarget) === currentStep + 1);
+      });
+
+      bubbles.forEach((bubble) => {
+        bubble.classList.toggle("active", Number(bubble.dataset.step) === currentStep + 1);
+      });
+
+      prevStep.disabled = currentStep === 0;
+      nextStep.disabled = currentStep === steps.length - 1;
+      renderStepButtons();
+    }
+
+    prevStep.addEventListener("click", () => {
+      if (currentStep > 0) {
+        currentStep -= 1;
+        render();
+      }
+    });
+
+    nextStep.addEventListener("click", () => {
+      if (currentStep < steps.length - 1) {
+        currentStep += 1;
+        render();
+      }
+    });
+
+    restartStep.addEventListener("click", () => {
+      currentStep = 0;
+      render();
+    });
+
+    render();
+  </script>
+</body>
+</html>

@@ -284,7 +284,7 @@
       border: 1px solid var(--guide-line);
       border-radius: 8px;
       background: linear-gradient(180deg, rgba(238, 244, 255, 0.55), #fff);
-      overflow: hidden;
+      overflow: visible;
     }
 
     .chat-demo-card::before {
@@ -301,16 +301,38 @@
       position: absolute;
       left: 8px;
       top: 8px;
-      max-width: min(260px, calc(100% - 16px));
-      padding: 9px 10px;
-      border: 1px solid var(--guide-line);
-      border-radius: 8px;
-      background: rgba(255, 255, 255, 0.98);
-      box-shadow: 0 14px 28px rgba(21, 32, 51, 0.12);
+      z-index: 4;
+      max-width: min(400px, calc(100% - 24px));
+      padding: 12px 14px;
+      border: 1px solid rgba(196, 148, 0, 0.4);
+      border-radius: 12px;
+      background: rgba(255, 244, 170, 0.94);
+      box-shadow: 0 16px 32px rgba(124, 95, 9, 0.18);
       opacity: 0;
       pointer-events: none;
       transform: translateY(4px);
       transition: opacity 150ms ease, transform 150ms ease;
+    }
+
+    .coach-bubble::after {
+      content: "";
+      position: absolute;
+      left: 28px;
+      width: 16px;
+      height: 16px;
+      background: rgba(255, 244, 170, 0.94);
+      border-right: 1px solid rgba(196, 148, 0, 0.4);
+      border-bottom: 1px solid rgba(196, 148, 0, 0.4);
+    }
+
+    .coach-bubble[data-placement="top"]::after {
+      bottom: -9px;
+      transform: rotate(45deg);
+    }
+
+    .coach-bubble[data-placement="bottom"]::after {
+      top: -9px;
+      transform: rotate(225deg);
     }
 
     .coach-bubble.active {
@@ -847,6 +869,7 @@
     const restartStep = document.getElementById("restartStep");
     const targets = Array.from(document.querySelectorAll("[data-step-target]"));
     const bubbles = Array.from(document.querySelectorAll(".coach-bubble"));
+    const demoCard = document.querySelector(".chat-demo-card");
 
     let currentStep = 0;
 
@@ -875,6 +898,34 @@
       });
     }
 
+    function positionActiveBubble() {
+      if (!demoCard) return;
+      const activeTarget = document.querySelector(`[data-step-target="${currentStep + 1}"]`);
+      const activeBubble = document.querySelector(`.coach-bubble[data-step="${currentStep + 1}"]`);
+      if (!activeTarget || !activeBubble) return;
+
+      const cardRect = demoCard.getBoundingClientRect();
+      const targetRect = activeTarget.getBoundingClientRect();
+      const bubbleRect = activeBubble.getBoundingClientRect();
+      const margin = 12;
+      const bubbleWidth = bubbleRect.width || 400;
+      const bubbleHeight = bubbleRect.height || 96;
+      const maxLeft = Math.max(margin, cardRect.width - bubbleWidth - margin);
+      const preferredLeft = targetRect.left - cardRect.left + 12;
+      const fallbackRight = targetRect.right - cardRect.left - bubbleWidth;
+      const left = Math.min(Math.max(targetRect.width > bubbleWidth * 0.8 ? preferredLeft : fallbackRight, margin), maxLeft);
+
+      const topAbove = targetRect.top - cardRect.top - bubbleHeight - 14;
+      const topBelow = targetRect.bottom - cardRect.top + 14;
+      const placeAbove = topAbove >= margin;
+      const maxTop = Math.max(margin, cardRect.height - bubbleHeight - margin);
+      const top = Math.min(Math.max(placeAbove ? topAbove : topBelow, margin), maxTop);
+
+      activeBubble.style.left = `${left}px`;
+      activeBubble.style.top = `${top}px`;
+      activeBubble.dataset.placement = placeAbove ? "top" : "bottom";
+    }
+
     function render() {
       const step = steps[currentStep];
       stepNumber.textContent = String(currentStep + 1);
@@ -898,12 +949,14 @@
       const activeTarget = document.querySelector(`[data-step-target="${currentStep + 1}"]`);
       if (activeTarget) {
         window.requestAnimationFrame(() => {
+          positionActiveBubble();
           activeTarget.scrollIntoView({
             behavior: "smooth",
             block: "center",
             inline: "nearest",
           });
         });
+        setTimeout(positionActiveBubble, 120);
       }
     }
 
@@ -926,6 +979,7 @@
       render();
     });
 
+    window.addEventListener("resize", positionActiveBubble);
     render();
   </script>
 </body>

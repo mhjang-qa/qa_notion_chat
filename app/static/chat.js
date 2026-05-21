@@ -180,8 +180,17 @@ function choiceButtons(items, onPick) {
 }
 
 function isReportIntent(text) {
+  if (isReportGuideIntent(text)) return false;
   const compact = (text || "").replace(/\s+/g, "");
   return /결함(제보|등록|신고|접수)|버그(제보|등록|신고|접수)|오류(제보|등록|신고|접수)|이슈(제보|등록|신고|접수)|장애(제보|등록|신고|접수)/.test(compact);
+}
+
+function isReportGuideIntent(text) {
+  const compact = (text || "").replace(/\s+/g, "").toLowerCase();
+  return (
+    /(결함|버그|오류|이슈|장애)(제보|등록|신고|접수)(가이드|방법|어떻게|절차|프로세스|안내|링크)/.test(compact) ||
+    /(가이드|방법|어떻게|절차|프로세스|안내|링크)(결함|버그|오류|이슈|장애)(제보|등록|신고|접수)/.test(compact)
+  );
 }
 
 function reportPrompt() {
@@ -546,15 +555,16 @@ async function sendQuestion() {
   addMessage("user", text);
   question.value = "";
   question.style.height = "auto";
+  const reportGuideIntent = isReportGuideIntent(text);
 
-  if (await handleReportInput(text)) {
+  if (!reportGuideIntent && await handleReportInput(text)) {
     inFlight = false;
     btnSend.disabled = false;
     focusQuestion();
     return;
   }
 
-  if (isReportIntent(text)) {
+  if (!reportGuideIntent && isReportIntent(text)) {
     reportFlow = {
       step: "target",
       targetKey: "",

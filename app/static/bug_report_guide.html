@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>버그요정 버니의 결함 제보 가이드</title>
+  <link rel="stylesheet" href="/static/bug_report_guide.css?v=guide-1">
+</head>
+<body>
+  <main class="guide-shell">
+    <section class="guide-hero">
+      <div class="hero-copy">
+        <p class="eyebrow">Bug Fairy BUNI</p>
+        <h1>버그요정 버니의 결함 제보 가이드</h1>
+        <p>정확한 결함 제보는 빠른 재현과 수정의 시작입니다.</p>
+      </div>
+      <aside class="hero-panel">
+        <div class="buni-badge" aria-hidden="true">B</div>
+        <h2>BUNI 안내 기준</h2>
+        <ul>
+          <li>결함을 빠르게 재현할 수 있는 정보만 남겨 주세요.</li>
+          <li>실제 결과와 기대 결과는 반드시 분리해서 작성해 주세요.</li>
+          <li>증빙이 충분할수록 QA 검토와 등록 속도가 빨라집니다.</li>
+        </ul>
+      </aside>
+    </section>
+
+    <section class="guide-stage">
+      <aside class="stage-side">
+        <div class="step-meter">
+          <p class="step-kicker">현재 단계</p>
+          <div class="step-indicator">
+            <strong id="stepNumber">1</strong>
+            <span id="stepLabel">결함 제보 페이지 접속</span>
+          </div>
+          <div class="step-list" id="stepList"></div>
+        </div>
+        <div class="buni-note">
+          <strong>BUNI 메모</strong>
+          <p id="stepSummary">결함 제보 페이지에 접속해 주세요. 제보 채널이 맞는지 먼저 확인하면 이후 입력이 줄어듭니다.</p>
+        </div>
+      </aside>
+
+      <section class="stage-main">
+        <div class="coach-caption">
+          <p><strong id="captionTitle">1. 결함 제보 페이지 접속</strong><br><span id="captionBody">결함 제보 채널이 맞는지 먼저 확인해 주세요. 서비스별 제보 페이지가 다를 수 있습니다.</span></p>
+        </div>
+
+        <div class="form-card">
+          <div class="coach-bubble active" data-step="1" data-anchor="access">
+            <strong>BUNI</strong>
+            <p>먼저 서비스에 맞는 결함 제보 페이지로 접속해 주세요. 잘못된 제보함에 등록되면 확인이 늦어질 수 있습니다.</p>
+          </div>
+          <div class="coach-bubble" data-step="2" data-anchor="title">
+            <strong>BUNI</strong>
+            <p>제목에는 기능, 증상, 조건이 바로 보이게 작성해 주세요. 예: 결제 버튼 클릭 시 결제창 미노출</p>
+          </div>
+          <div class="coach-bubble" data-step="3" data-anchor="env">
+            <strong>BUNI</strong>
+            <p>플랫폼, 앱/웹 버전, 테스트 환경을 함께 남겨 주세요. 환경 정보가 빠지면 재현 속도가 떨어집니다.</p>
+          </div>
+          <div class="coach-bubble" data-step="4" data-anchor="repro">
+            <strong>BUNI</strong>
+            <p>재현 절차는 번호 순서대로 작성해 주세요. 누구나 그대로 따라 했을 때 같은 결과가 나와야 합니다.</p>
+          </div>
+          <div class="coach-bubble" data-step="5" data-anchor="compare">
+            <strong>BUNI</strong>
+            <p>실제 결과와 기대 결과를 분리하면 결함 판단이 훨씬 빨라집니다. 한 문장씩 짧게 적어도 충분합니다.</p>
+          </div>
+          <div class="coach-bubble" data-step="6" data-anchor="evidence">
+            <strong>BUNI</strong>
+            <p>스크린샷, 영상, 로그 중 가능한 증빙을 첨부해 주세요. 재현이 어려운 이슈일수록 증빙이 중요합니다.</p>
+          </div>
+          <div class="coach-bubble" data-step="7" data-anchor="review">
+            <strong>BUNI</strong>
+            <p>제보 후에는 QA 검토를 거쳐 결함 등록 또는 반려가 진행될 수 있습니다. 반려 시 보완 요청이 따라올 수 있습니다.</p>
+          </div>
+
+          <form class="mock-form" onsubmit="return false;">
+            <div class="field-grid">
+              <section class="mock-field active" data-step-target="1">
+                <span class="mock-label">제보 페이지</span>
+                <div class="mock-value">Go.Hanpass - Bug Report Inbox</div>
+              </section>
+              <section class="mock-field" data-step-target="2">
+                <span class="mock-label">결함 제목</span>
+                <div class="mock-value">결제 버튼 클릭 시 결제창 미노출</div>
+              </section>
+            </div>
+
+            <section class="mock-field full" data-step-target="3">
+              <span class="mock-label">발생 환경</span>
+              <div class="field-grid">
+                <div>
+                  <span class="mock-label">플랫폼</span>
+                  <div class="mock-value">iOS</div>
+                </div>
+                <div>
+                  <span class="mock-label">앱/웹 버전</span>
+                  <div class="mock-value">v5.22.0</div>
+                </div>
+                <div class="full">
+                  <span class="mock-label">테스트 환경</span>
+                  <div class="mock-value">운영 / QA 계정 / iPhone 15 Pro / iOS 18.1</div>
+                </div>
+              </div>
+            </section>
+
+            <section class="mock-field full" data-step-target="4">
+              <span class="mock-label">재현 절차</span>
+              <div class="mock-textarea">1. 앱 실행 후 결제 화면으로 이동해 주세요.<br>2. 금액 입력 후 결제 버튼을 눌러 주세요.<br>3. 결제창이 노출되지 않고 현재 화면에 머무는지 확인해 주세요.</div>
+            </section>
+
+            <div class="field-grid">
+              <section class="mock-field full" data-step-target="5">
+                <span class="mock-label">실제 결과 / 기대 결과</span>
+                <div class="mock-textarea">실제 결과: 결제 버튼 클릭 후 화면 변화가 없고 결제창이 열리지 않습니다.<br><br>기대 결과: 결제 버튼 클릭 후 결제창이 정상적으로 노출되어야 합니다.</div>
+              </section>
+            </div>
+
+            <div class="field-grid">
+              <section class="mock-field full" data-step-target="6">
+                <span class="mock-label">증빙 첨부</span>
+                <div class="mock-upload">스크린샷 / 화면 녹화 / 로그 파일 첨부 영역</div>
+              </section>
+              <section class="mock-field full" data-step-target="7">
+                <span class="mock-label">QA 검토 안내</span>
+                <div class="mock-value">QA 검토 후 결함 등록 또는 반려될 수 있습니다.</div>
+              </section>
+            </div>
+          </form>
+        </div>
+
+        <div class="guide-controls">
+          <div class="control-group">
+            <button type="button" id="prevStep">이전</button>
+            <button type="button" class="primary" id="nextStep">다음</button>
+          </div>
+          <button type="button" id="restartStep">처음부터 보기</button>
+        </div>
+      </section>
+    </section>
+
+    <section class="guide-note">
+      <h2>검토 기준</h2>
+      <p>결함 제보는 내용이 충분하면 바로 등록되지만, 재현 정보나 증빙이 부족하면 QA 검토 후 반려될 수 있습니다. 버니 가이드 기준으로 작성하면 불필요한 왕복을 줄일 수 있습니다.</p>
+    </section>
+  </main>
+
+  <script>
+    const steps = [
+      {
+        title: "결함 제보 페이지 접속",
+        summary: "결함 제보 페이지에 접속해 주세요. 제보 채널이 맞는지 먼저 확인하면 이후 입력이 줄어듭니다.",
+        caption: "결함 제보 채널이 맞는지 먼저 확인해 주세요. 서비스별 제보 페이지가 다를 수 있습니다."
+      },
+      {
+        title: "결함 제목 작성",
+        summary: "증상을 바로 이해할 수 있게 제목을 작성해 주세요. 기능명과 실패 증상을 함께 넣는 편이 좋습니다.",
+        caption: "제목만 보고도 어떤 화면에서 어떤 문제가 생겼는지 파악할 수 있게 작성해 주세요."
+      },
+      {
+        title: "발생 환경 입력",
+        summary: "플랫폼, 앱/웹 버전, 테스트 환경을 함께 적어 주세요. 환경 정보가 빠지면 재현 확인이 늦어질 수 있습니다.",
+        caption: "발생 환경은 재현 속도에 직접 영향을 줍니다. 기기와 운영체제 정보도 빠뜨리지 말아 주세요."
+      },
+      {
+        title: "재현 절차 작성",
+        summary: "누구나 그대로 따라 할 수 있게 순서대로 작성해 주세요. 단계가 길어도 생략하지 않는 편이 좋습니다.",
+        caption: "재현 절차는 짧아도 되지만 모호하면 안 됩니다. 클릭, 입력, 이동 순서를 분명히 적어 주세요."
+      },
+      {
+        title: "실제 결과와 기대 결과 입력",
+        summary: "실제 결과와 기대 결과를 분리해서 작성해 주세요. QA 검토와 개발 전달 품질이 함께 올라갑니다.",
+        caption: "무엇이 잘못되었는지와 원래 어떻게 동작해야 하는지를 분리해서 적어 주세요."
+      },
+      {
+        title: "증빙 첨부",
+        summary: "스크린샷, 영상, 로그 등 가능한 증빙을 첨부해 주세요. 재현 난도가 높은 이슈일수록 중요합니다.",
+        caption: "증빙이 충분하면 재현과 원인 파악이 빨라집니다. 화면 녹화나 로그가 있으면 함께 첨부해 주세요."
+      },
+      {
+        title: "QA 검토 안내 확인",
+        summary: "제보 후 QA 검토를 거쳐 등록 또는 반려가 진행될 수 있습니다. 반려 시에는 보완 요청을 확인해 주세요.",
+        caption: "모든 제보가 바로 결함 등록되지는 않습니다. 재현 불가나 정보 부족이면 반려될 수 있습니다."
+      }
+    ];
+
+    const stepNumber = document.getElementById("stepNumber");
+    const stepLabel = document.getElementById("stepLabel");
+    const stepSummary = document.getElementById("stepSummary");
+    const captionTitle = document.getElementById("captionTitle");
+    const captionBody = document.getElementById("captionBody");
+    const stepList = document.getElementById("stepList");
+    const prevStep = document.getElementById("prevStep");
+    const nextStep = document.getElementById("nextStep");
+    const restartStep = document.getElementById("restartStep");
+    const targets = Array.from(document.querySelectorAll("[data-step-target]"));
+    const bubbles = Array.from(document.querySelectorAll(".coach-bubble"));
+
+    let currentStep = 0;
+
+    function renderStepButtons() {
+      stepList.textContent = "";
+      steps.forEach((step, index) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.textContent = `${index + 1}. ${step.title}`;
+        if (index === currentStep) button.classList.add("active");
+        button.addEventListener("click", () => {
+          currentStep = index;
+          render();
+        });
+        stepList.appendChild(button);
+      });
+    }
+
+    function render() {
+      const step = steps[currentStep];
+      stepNumber.textContent = String(currentStep + 1);
+      stepLabel.textContent = step.title;
+      stepSummary.textContent = step.summary;
+      captionTitle.textContent = `${currentStep + 1}. ${step.title}`;
+      captionBody.textContent = step.caption;
+
+      targets.forEach((target) => {
+        target.classList.toggle("active", Number(target.dataset.stepTarget) === currentStep + 1);
+      });
+
+      bubbles.forEach((bubble) => {
+        bubble.classList.toggle("active", Number(bubble.dataset.step) === currentStep + 1);
+      });
+
+      prevStep.disabled = currentStep === 0;
+      nextStep.disabled = currentStep === steps.length - 1;
+      renderStepButtons();
+    }
+
+    prevStep.addEventListener("click", () => {
+      if (currentStep === 0) return;
+      currentStep -= 1;
+      render();
+    });
+
+    nextStep.addEventListener("click", () => {
+      if (currentStep >= steps.length - 1) return;
+      currentStep += 1;
+      render();
+    });
+
+    restartStep.addEventListener("click", () => {
+      currentStep = 0;
+      render();
+    });
+
+    render();
+  </script>
+</body>
+</html>

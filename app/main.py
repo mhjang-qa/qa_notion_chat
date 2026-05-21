@@ -5,7 +5,7 @@ import time
 from pathlib import Path
 
 from fastapi import FastAPI, Form, Request, Response
-from fastapi.responses import HTMLResponse, RedirectResponse, PlainTextResponse
+from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
@@ -72,7 +72,7 @@ class AuthGateMiddleware(BaseHTTPMiddleware):
         if not config.AUTH_REQUIRED:
             return await call_next(request)
         path = request.url.path
-        public_paths = {"/", "/login", "/logout", "/health", "/healthz", "/favicon.ico"}
+        public_paths = {"/", "/login", "/logout", "/health", "/healthz", "/favicon.ico", "/bug-report-guide"}
         if path in public_paths or path.startswith("/static"):
             return await call_next(request)
         if not request.session.get("auth"):
@@ -155,3 +155,8 @@ def logout(request: Request):
 @app.get("/favicon.ico")
 def favicon():
     return HTMLResponse(status_code=204)
+
+
+@app.get("/bug-report-guide")
+def bug_report_guide():
+    return FileResponse(BASE_DIR / "static" / "bug_report_guide.html")

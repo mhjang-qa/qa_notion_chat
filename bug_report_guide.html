@@ -926,9 +926,14 @@
       const bubbleWidth = bubbleRect.width || 400;
       const bubbleHeight = bubbleRect.height || 96;
       const maxLeft = Math.max(margin, cardRect.width - bubbleWidth - margin);
+      const isUserTarget = activeTarget.classList.contains("user");
       const preferredLeft = targetRect.left - cardRect.left + 12;
+      const preferredRight = targetRect.right - cardRect.left - bubbleWidth - 12;
       const fallbackRight = targetRect.right - cardRect.left - bubbleWidth;
-      const left = Math.min(Math.max(targetRect.width > bubbleWidth * 0.8 ? preferredLeft : fallbackRight, margin), maxLeft);
+      const nextLeft = isUserTarget
+        ? preferredRight
+        : (targetRect.width > bubbleWidth * 0.8 ? preferredLeft : fallbackRight);
+      const left = Math.min(Math.max(nextLeft, margin), maxLeft);
 
       const topAbove = targetRect.top - cardRect.top - bubbleHeight - 14;
       const topBelow = targetRect.bottom - cardRect.top + 14;

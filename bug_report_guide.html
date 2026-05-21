@@ -136,7 +136,7 @@
 
     .guide-stage {
       display: grid;
-      grid-template-columns: 210px minmax(0, 1fr);
+      grid-template-columns: 260px minmax(0, 1fr);
       gap: 8px;
       padding: 8px;
     }
@@ -155,6 +155,7 @@
       align-self: start;
       max-height: calc(100dvh - 20px);
       overflow: auto;
+      width: 260px;
       padding-right: 2px;
     }
 
@@ -259,9 +260,10 @@
 
     .demo-layout {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) 240px;
+      grid-template-columns: minmax(0, min(900px, calc(100% - 268px))) 260px;
       gap: 8px;
       align-items: start;
+      justify-content: center;
     }
 
     .stage-toolbar {
@@ -270,7 +272,7 @@
       align-items: stretch;
       justify-content: flex-start;
       gap: 4px;
-      width: 240px;
+      width: 260px;
       position: sticky;
       top: 10px;
       align-self: start;
@@ -299,7 +301,7 @@
       position: absolute;
       left: 8px;
       top: 8px;
-      max-width: min(300px, calc(100% - 16px));
+      max-width: min(260px, calc(100% - 16px));
       padding: 9px 10px;
       border: 1px solid var(--guide-line);
       border-radius: 8px;
@@ -413,7 +415,7 @@
     }
 
     .message-bubble {
-      max-width: min(620px, calc(100% - 32px));
+      max-width: min(540px, calc(100% - 32px));
       padding: 9px 10px;
       border: 1px solid var(--guide-line);
       border-radius: 8px;
@@ -569,6 +571,10 @@
       .stage-toolbar {
         width: 100%;
         position: static;
+      }
+
+      .stage-side {
+        width: 100%;
       }
 
       .stage-toolbar button {

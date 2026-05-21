@@ -84,10 +84,10 @@
       box-shadow: 0 0 0 6px var(--guide-accent-soft);
     }
 
-    .guide-hero h1 {
-      margin: 0 0 10px;
-      font-size: clamp(30px, 4.4vw, 46px);
-      line-height: 1.08;
+    .guide-hero h3 {
+      margin: 0 0 8px;
+      font-size: clamp(22px, 2.2vw, 30px);
+      line-height: 1.15;
     }
 
     .guide-hero p {
@@ -143,7 +143,7 @@
     .stage-side,
     .stage-main {
       display: grid;
-      gap: 16px;
+      gap: 14px;
       align-content: start;
       min-width: 0;
     }
@@ -190,7 +190,7 @@
     }
 
     .step-list button,
-    .guide-controls button {
+    .stage-toolbar button {
       width: 100%;
       min-height: 44px;
       padding: 11px 12px;
@@ -230,6 +230,14 @@
 
     .coach-caption strong {
       color: var(--guide-ink);
+    }
+
+    .stage-toolbar {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
     }
 
     .chat-demo-card {
@@ -476,14 +484,14 @@
     }
 
     .chat-input-bar button,
-    .guide-controls button.primary {
+    .stage-toolbar button.primary {
       border-color: var(--guide-accent);
       background: var(--guide-accent);
       color: #fff;
       text-align: center;
     }
 
-    .guide-controls {
+    .stage-toolbar {
       display: flex;
       flex-wrap: wrap;
       align-items: center;
@@ -491,13 +499,7 @@
       gap: 12px;
     }
 
-    .control-group {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
-
-    .guide-controls button:disabled {
+    .stage-toolbar button:disabled {
       opacity: 0.45;
       cursor: not-allowed;
     }
@@ -546,8 +548,15 @@
         max-width: calc(100% - 20px);
       }
 
-      .guide-controls,
-      .control-group {
+      .stage-toolbar {
+        width: 100%;
+      }
+
+      .stage-toolbar {
+        justify-content: stretch;
+      }
+
+      .stage-toolbar > * {
         width: 100%;
       }
 
@@ -566,7 +575,7 @@
     <section class="guide-hero">
       <div class="hero-copy">
         <p class="eyebrow">Bug Fairy BUNI</p>
-        <h1>버그요정 버니의 결함 제보 가이드</h1>
+        <h3>버그요정 버니의 결함 제보 가이드</h3>
         <p>정확한 결함 제보는 빠른 재현과 수정의 시작입니다.</p>
       </div>
     </section>
@@ -590,6 +599,12 @@
       <section class="stage-main">
         <div class="coach-caption">
           <p><strong id="captionTitle">1. 결함 제보 시작</strong><br><span id="captionBody">채팅창에 `결함 제보`를 입력하면 버니가 단계형 제보 모드로 전환합니다.</span></p>
+        </div>
+
+        <div class="stage-toolbar">
+          <button type="button" id="prevStep">이전</button>
+          <button type="button" class="primary" id="nextStep">다음</button>
+          <button type="button" id="restartStep">처음부터 보기</button>
         </div>
 
         <div class="chat-demo-card">
@@ -716,14 +731,6 @@
               <button type="button">전송</button>
             </div>
           </div>
-        </div>
-
-        <div class="guide-controls">
-          <div class="control-group">
-            <button type="button" id="prevStep">이전</button>
-            <button type="button" class="primary" id="nextStep">다음</button>
-          </div>
-          <button type="button" id="restartStep">처음부터 보기</button>
         </div>
       </section>
     </section>

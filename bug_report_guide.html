@@ -945,7 +945,7 @@
 
       const topAbove = targetRect.top - cardRect.top - bubbleHeight - 14;
       const topBelow = targetRect.bottom - cardRect.top + 14;
-      const placeAbove = topAbove >= margin;
+      const placeAbove = isUserTarget || topAbove >= margin;
       const maxTop = Math.max(margin, cardRect.height - bubbleHeight - margin);
       const top = Math.min(Math.max(placeAbove ? topAbove : topBelow, margin), maxTop);
 

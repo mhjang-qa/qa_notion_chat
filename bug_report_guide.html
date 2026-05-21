@@ -38,16 +38,16 @@
     }
 
     body {
-      padding: 8px;
+      padding: 6px;
       overflow-x: hidden;
     }
 
     .guide-shell {
-      width: min(1660px, 100%);
+      width: min(1320px, calc(100vw - 12px));
       margin: 0 auto;
       display: grid;
       gap: 8px;
-      overflow-x: clip;
+      overflow-x: visible;
     }
 
     .guide-hero,
@@ -138,9 +138,10 @@
 
     .guide-stage {
       display: grid;
-      grid-template-columns: 300px minmax(0, 1fr);
+      grid-template-columns: 260px minmax(0, 1fr);
       gap: 8px;
       padding: 8px;
+      align-items: start;
     }
 
     .stage-side,
@@ -152,8 +153,8 @@
     }
 
     .stage-main {
-      overflow-x: clip;
-      justify-items: start;
+      overflow-x: visible;
+      justify-items: center;
     }
 
     .stage-side {
@@ -162,7 +163,7 @@
       align-self: start;
       max-height: calc(100dvh - 20px);
       overflow: auto;
-      width: 300px;
+      width: 260px;
       padding-right: 2px;
     }
 
@@ -268,17 +269,20 @@
     }
 
     .coach-caption {
-      width: fit-content;
-      max-width: min(760px, 100%);
+      width: min(760px, max(0px, calc(100% - 248px)));
+      max-width: 760px;
       padding: 8px 10px;
+      justify-self: start;
     }
 
     .demo-layout {
       display: grid;
-      grid-template-columns: minmax(0, min(860px, calc(100% - 308px))) 300px;
+      grid-template-columns: minmax(0, min(760px, calc(100% - 248px))) 240px;
       gap: 8px;
       align-items: start;
       justify-content: center;
+      width: 100%;
+      max-width: 1008px;
     }
 
     .stage-toolbar {
@@ -287,7 +291,7 @@
       align-items: stretch;
       justify-content: flex-start;
       gap: 4px;
-      width: 300px;
+      width: 240px;
       position: sticky;
       top: 10px;
       align-self: start;
@@ -568,7 +572,6 @@
 
     .stage-toolbar {
       display: flex;
-      flex-wrap: wrap;
       align-items: center;
       justify-content: space-between;
       gap: 12px;
@@ -612,6 +615,11 @@
 
       .stage-side {
         width: 100%;
+      }
+
+      .coach-caption {
+        width: 100%;
+        max-width: none;
       }
 
       .stage-toolbar button {

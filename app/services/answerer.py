@@ -554,7 +554,7 @@ def _defect_status_summary() -> dict:
         later = counter["later"]
         return f"- {label} 결함 개수: {total}건 / 완료 {done}건 / 진행중 {active}건 / 추후 수정 {later}건"
 
-    notion_url = "https://www.notion.so/21473fbd1951800d8321fc2e34c2548e?v=21473fbd195180caab27000c0264da96&source=copy_link"
+    notion_url = "https://www.notion.so/21473fbd19518019823fcaa7ef5d6761?source=copy_link"
 
     answer = (
         "현재까지 등록된 결함 개수 요약입니다.\n\n"

@@ -436,6 +436,202 @@ body {
   cursor: not-allowed;
 }
 
+.chat-demo-card {
+  padding-top: 84px;
+}
+
+.chat-demo {
+  display: grid;
+  gap: 16px;
+  border: 1px solid var(--guide-line);
+  border-radius: 8px;
+  background: linear-gradient(180deg, rgba(238, 244, 255, 0.55), #f9fbff 36%, #eef3fb 100%);
+  overflow: hidden;
+}
+
+.chat-demo-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--guide-line);
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.chat-demo-header strong {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 16px;
+}
+
+.chat-demo-header div:last-child {
+  color: var(--guide-muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.chat-demo-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #13847a, #4d9cf4);
+  color: #fff;
+  font-weight: 900;
+}
+
+.chat-log {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+}
+
+.message-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+  opacity: 0.42;
+  transition: opacity 140ms ease, transform 140ms ease;
+}
+
+.message-row.active {
+  opacity: 1;
+  transform: translateY(-1px);
+}
+
+.message-row.user {
+  justify-content: flex-end;
+}
+
+.message-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #13847a, #4d9cf4);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.message-bubble {
+  max-width: min(680px, calc(100% - 44px));
+  padding: 14px 16px;
+  border: 1px solid var(--guide-line);
+  border-radius: 8px;
+  background: #fff;
+  line-height: 1.65;
+  color: var(--guide-ink);
+  box-shadow: 0 10px 24px rgba(21, 32, 51, 0.06);
+}
+
+.message-row.user .message-bubble {
+  background: rgba(17, 120, 111, 0.12);
+  border-color: rgba(17, 120, 111, 0.22);
+}
+
+.reply-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.reply-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid rgba(17, 120, 111, 0.24);
+  border-radius: 999px;
+  background: rgba(17, 120, 111, 0.08);
+  color: var(--guide-accent-strong);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.reply-chip.subtle {
+  border-color: var(--guide-line);
+  background: #fff;
+  color: var(--guide-muted);
+}
+
+.upload-flow,
+.summary-flow {
+  width: 100%;
+}
+
+.mock-upload.compact {
+  min-height: 68px;
+  margin-top: 12px;
+  font-size: 13px;
+}
+
+.summary-title {
+  display: block;
+  margin-bottom: 12px;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: 92px minmax(0, 1fr);
+  gap: 8px 12px;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.summary-grid span:nth-child(odd) {
+  color: var(--guide-muted);
+  font-weight: 700;
+}
+
+.notion-result {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border: 1px solid rgba(17, 120, 111, 0.24);
+  border-radius: 8px;
+  background: rgba(17, 120, 111, 0.08);
+  color: var(--guide-accent-strong);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.chat-input-bar {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 14px 18px 18px;
+  border-top: 1px solid rgba(215, 223, 235, 0.9);
+  background: rgba(255, 255, 255, 0.88);
+}
+
+.chat-input {
+  flex: 1 1 auto;
+  min-height: 46px;
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  border: 1px solid var(--guide-line);
+  border-radius: 8px;
+  background: #fff;
+  color: #99a4b8;
+}
+
+.chat-input-bar button {
+  min-height: 46px;
+  padding: 0 16px;
+  border: 1px solid var(--guide-accent);
+  border-radius: 8px;
+  background: var(--guide-accent);
+  color: #fff;
+  font-weight: 700;
+}
+
 .guide-note {
   padding: 18px 20px;
   display: grid;
@@ -487,6 +683,12 @@ body {
     padding: 66px 14px 16px;
   }
 
+  .chat-demo-header,
+  .chat-log,
+  .chat-input-bar {
+    padding-inline: 14px;
+  }
+
   .coach-bubble {
     left: 14px;
     top: 14px;
@@ -500,5 +702,13 @@ body {
   .control-group,
   .guide-controls button {
     width: 100%;
+  }
+
+  .message-bubble {
+    max-width: calc(100% - 44px);
+  }
+
+  .summary-grid {
+    grid-template-columns: 1fr;
   }
 }

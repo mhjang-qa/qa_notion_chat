@@ -45,7 +45,11 @@ _REPORT_GUIDE_RE = re.compile(
     r"(가이드|방법|어떻게|절차|프로세스|안내|링크).*(결함|버그|오류|이슈|장애)\s*(제보|등록|신고|접수)",
     re.IGNORECASE,
 )
-_DEFECT_STATUS_RE = re.compile(r"(현재)?\s*(결함|이슈|버그|장애)\s*(현황|상태|요약|summary)", re.IGNORECASE)
+_DEFECT_STATUS_RE = re.compile(
+    r"(현재|현재까지|지금|전체)?\s*(결함|이슈|버그|장애)\s*(현황|상태|요약|개수|수|건수|몇\s*개|summary|count)|"
+    r"(결함|이슈|버그|장애).*(몇\s*개|몇개|개수|건수|수량|카운트)",
+    re.IGNORECASE,
+)
 _CURRENT_WORK_RE = re.compile(
     r"(현재|지금|진행\s*중|진행중).*(테스트|업무|항목|현황)|"
     r"(테스트|업무|항목).*(현재|지금|진행\s*중|진행중|현황)",
@@ -367,6 +371,28 @@ def _issue_status(text: str) -> str:
     return match.group(1).strip() if match else "상태 없음"
 
 
+def _defect_count_status_group(status: str) -> str:
+    lowered = (status or "").lower()
+    if any(token in lowered for token in ("추후", "백로그 이관", "backlog")):
+        return "later"
+    if any(token in lowered for token in ("완료", "done", "결함 아님", "not an issue")):
+        return "done"
+    return "active"
+
+
+def _defect_service_group(page: dict) -> str:
+    haystack = "\n".join(
+        [
+            str(page.get("title") or ""),
+            str(page.get("text") or ""),
+            " > ".join(str(x) for x in (page.get("path") or [])),
+        ]
+    ).lower()
+    if re.search(r"go\s*hanpass|gohanpass|go\.hanpass|방한\s*홈|방한홈", haystack, re.IGNORECASE):
+        return "go hanpass"
+    return "한패스"
+
+
 def _line_value(text: str, names: tuple[str, ...]) -> str:
     for raw in (text or "").splitlines():
         line = raw.strip()
@@ -505,44 +531,49 @@ def _work_status_summary(status_group: str) -> dict | None:
 
 def _defect_status_summary() -> dict:
     pages = load_index().get("pages") or []
-    statuses: Counter[str] = Counter()
-    total = 0
+    groups = {
+        "전체": Counter(),
+        "한패스": Counter(),
+        "go hanpass": Counter(),
+    }
     for page in pages:
         if not isinstance(page, dict):
             continue
         if "QA_ISSUES" not in " > ".join(str(x) for x in (page.get("path") or [])):
             continue
-        total += 1
-        statuses[_issue_status(str(page.get("text") or ""))] += 1
+        text = str(page.get("text") or "")
+        status_group = _defect_count_status_group(_issue_status(text))
+        service_group = _defect_service_group(page)
+        groups["전체"][status_group] += 1
+        groups[service_group][status_group] += 1
 
-    done = sum(
-        count
-        for status, count in statuses.items()
-        if any(key in status.lower() for key in ("완료 (done)", "결함 아님", "추후", "not an issue"))
-    )
-    ready = sum(
-        count
-        for status, count in statuses.items()
-        if any(key in status.lower() for key in ("qa 검증", "qa verification", "개발 완료", "dev done"))
-    )
-    in_progress = max(total - done - ready, 0)
-    top_statuses = "\n".join(f"- {status}: {count}건" for status, count in statuses.most_common(6))
+    def line(label: str, counter: Counter[str]) -> str:
+        total = sum(counter.values())
+        done = counter["done"]
+        active = counter["active"]
+        later = counter["later"]
+        return f"- {label} 결함 개수: {total}건 / 완료 {done}건 / 진행중 {active}건 / 추후 수정 {later}건"
+
+    notion_url = "https://www.notion.so/21473fbd1951800d8321fc2e34c2548e?v=21473fbd195180caab27000c0264da96&source=copy_link"
 
     answer = (
-        "현재 등록된 결함 현황 요약입니다.\n\n"
-        f"- 전체 등록 결함: {total}건\n"
-        f"- 수정중: {in_progress}건\n"
-        f"- 테스트 예정: {ready}건\n"
-        f"- 완료: {done}건\n\n"
-        "상태별 상세 분포:\n"
-        f"{top_statuses}\n\n"
+        "현재까지 등록된 결함 개수 요약입니다.\n\n"
+        f"{line('전체', groups['전체'])}\n"
+        f"{line('한패스', groups['한패스'])}\n"
+        f"{line('go hanpass', groups['go hanpass'])}\n\n"
         "특정 항목을 자세히 보려면 `상세 결함 검색 \"검색어\"` 형식으로 입력해 주세요.\n"
         "예: `상세 결함 검색 회원가입`, `상세 결함 검색 5.20.0`"
     )
 
     return {
         "answer": answer,
-        "sources": [],
+        "sources": [
+            {
+                "title": "결함 현황",
+                "url": notion_url,
+                "button_label": "결함 현황 바로가기",
+            }
+        ],
         "items": [],
         "origin": "NOTION",
         "mode": "defect_status_summary",

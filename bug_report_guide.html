@@ -39,6 +39,7 @@
 
     body {
       padding: 8px;
+      overflow-x: hidden;
     }
 
     .guide-shell {
@@ -46,6 +47,7 @@
       margin: 0 auto;
       display: grid;
       gap: 8px;
+      overflow-x: clip;
     }
 
     .guide-hero,
@@ -87,7 +89,7 @@
 
     .guide-hero h3 {
       margin: 0 0 3px;
-      font-size: 13px;
+      font-size: 18px;
       line-height: 1.15;
     }
 
@@ -147,6 +149,11 @@
       gap: 8px;
       align-content: start;
       min-width: 0;
+    }
+
+    .stage-main {
+      overflow-x: clip;
+      justify-items: start;
     }
 
     .stage-side {
@@ -255,7 +262,15 @@
     }
 
     .coach-caption strong {
+      display: block;
+      margin-bottom: 2px;
       color: var(--guide-ink);
+    }
+
+    .coach-caption {
+      width: fit-content;
+      max-width: min(760px, 100%);
+      padding: 8px 10px;
     }
 
     .demo-layout {
@@ -673,7 +688,7 @@
 
       <section class="stage-main">
         <div class="coach-caption">
-          <p><strong id="captionTitle">1. 결함 제보 시작</strong><br><span id="captionBody">채팅창에 `결함 제보`를 입력하면 버니가 단계형 제보 모드로 전환합니다.</span></p>
+          <p><strong id="captionTitle">1. 결함 제보 시작</strong><span id="captionBody">채팅창에 `결함 제보`를 입력하면 버니가 단계형 제보 모드로 전환합니다.</span></p>
         </div>
 
         <div class="demo-layout">

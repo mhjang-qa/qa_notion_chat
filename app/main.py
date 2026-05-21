@@ -171,4 +171,4 @@ def favicon():
 @app.get("/bug-report-guide.html")
 @app.get("/bug_report_guide.html")
 def bug_report_guide():
-    return FileResponse(BASE_DIR / "static" / "bug_report_guide.html")
+    return FileResponse(BASE_DIR.parent / "bug_report_guide.html")

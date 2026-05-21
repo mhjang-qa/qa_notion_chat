@@ -6,6 +6,7 @@ import subprocess
 from collections import Counter
 
 from app.core import config
+from app.services.notion_tree import _query_database_pages
 from app.services.retriever import SearchHit, load_index, search, source_payload
 
 
@@ -380,13 +381,67 @@ def _defect_count_status_group(status: str) -> str:
     return "active"
 
 
+def _defect_prop_text(prop: dict | None) -> str:
+    if not isinstance(prop, dict):
+        return ""
+    ptype = prop.get("type")
+    if ptype in {"title", "rich_text"}:
+        items = prop.get(ptype) or []
+        if not isinstance(items, list):
+            return ""
+        return "".join(str(x.get("plain_text") or "") for x in items if isinstance(x, dict)).strip()
+    if ptype == "select":
+        selected = prop.get("select") or {}
+        return str(selected.get("name") or "").strip() if isinstance(selected, dict) else ""
+    if ptype == "status":
+        status = prop.get("status") or {}
+        return str(status.get("name") or "").strip() if isinstance(status, dict) else ""
+    if ptype == "multi_select":
+        values = prop.get("multi_select") or []
+        return ", ".join(str(x.get("name") or "").strip() for x in values if isinstance(x, dict)).strip()
+    if ptype in {"number", "checkbox", "url", "email", "phone_number"}:
+        value = prop.get(ptype)
+        return "" if value is None else str(value).strip()
+    return ""
+
+
+def _defect_target_text(page: dict) -> str:
+    props = page.get("properties") or {}
+    if not isinstance(props, dict):
+        return ""
+    names = ("목표버전", "타겟 정보", "타겟 버전", "타겟버전")
+    values: list[str] = []
+    for name in names:
+        value = _defect_prop_text(props.get(name))
+        if value:
+            values.append(value)
+    if values:
+        return " ".join(values)
+    for prop in props.values():
+        value = _defect_prop_text(prop)
+        if value and re.search(r"\[G\.H\]|go\.hanpass|gohanpass|go hanpass", value, re.IGNORECASE):
+            return value
+    return ""
+
+
+def _defect_status_text(page: dict) -> str:
+    props = page.get("properties") or {}
+    if not isinstance(props, dict):
+        return ""
+    return _defect_prop_text(props.get("상태"))
+
+
 def _defect_service_group(page: dict) -> str:
+    target_text = _defect_target_text(page)
+    if re.search(r"^\s*\[G\.H\]", target_text, re.IGNORECASE):
+        return "Go.Hanpass"
     text = str(page.get("text") or "")
-    if re.search(r"^(?:목표버전|타겟 정보|타겟 버전|타겟버전)\s*:\s*\[G\.H\]", text, re.M | re.I):
+    if re.search(r"\[G\.H\]|go\.hanpass|gohanpass|go hanpass", text, re.M | re.I):
         return "Go.Hanpass"
     haystack = "\n".join(
         [
             str(page.get("title") or ""),
+            target_text,
             text,
             " > ".join(str(x) for x in (page.get("path") or [])),
         ]
@@ -533,7 +588,7 @@ def _work_status_summary(status_group: str) -> dict | None:
 
 
 def _defect_status_summary() -> dict:
-    pages = load_index().get("pages") or []
+    pages = _query_database_pages(config.QA_PRIORITY_DEFECT_PAGE_ID, limit=800)
     groups = {
         "전체": Counter(),
         "한패스": Counter(),
@@ -542,10 +597,7 @@ def _defect_status_summary() -> dict:
     for page in pages:
         if not isinstance(page, dict):
             continue
-        if "QA_ISSUES" not in " > ".join(str(x) for x in (page.get("path") or [])):
-            continue
-        text = str(page.get("text") or "")
-        status_group = _defect_count_status_group(_issue_status(text))
+        status_group = _defect_count_status_group(_defect_status_text(page))
         service_group = _defect_service_group(page)
         groups["전체"][status_group] += 1
         groups[service_group][status_group] += 1

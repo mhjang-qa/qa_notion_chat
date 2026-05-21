@@ -225,7 +225,25 @@ def _issue_target_text(page: dict[str, Any]) -> str:
     return " ".join(values)
 
 
+def _issue_is_gohanpass(page: dict[str, Any]) -> bool:
+    target_text = _issue_target_text(page)
+    if re.search(r"^\s*\[G\.H\]", target_text, re.IGNORECASE):
+        return True
+    props = page.get("properties") or {}
+    if not isinstance(props, dict):
+        return False
+    for prop in props.values():
+        if not isinstance(prop, dict):
+            continue
+        value = _property_text(prop)
+        if value and re.search(r"\[G\.H\]|go\.hanpass|gohanpass|go hanpass", value, re.IGNORECASE):
+            return True
+    return False
+
+
 def _issue_target_version_allowed(page: dict[str, Any]) -> bool:
+    if _issue_is_gohanpass(page):
+        return True
     min_version = _version_tuple(config.QA_ISSUE_MIN_TARGET_VERSION)
     if min_version is None:
         return True

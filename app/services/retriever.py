@@ -107,6 +107,13 @@ def _issue_target_version(text: str) -> tuple[int, int, int] | None:
     return _version_tuple(text)
 
 
+def _issue_is_gohanpass_text(text: str) -> bool:
+    haystack = text or ""
+    if re.search(r"^\s*(?:목표버전|타겟 정보|타겟 버전|타겟버전)\s*:?\s*\[G\.H\]", haystack, re.M | re.I):
+        return True
+    return bool(re.search(r"\[G\.H\]|go\.hanpass|gohanpass|go hanpass", haystack, re.IGNORECASE))
+
+
 def _is_issue_chunk(chunk: Chunk) -> bool:
     return "QA_ISSUES" in " > ".join(chunk.path)
 
@@ -320,7 +327,13 @@ def search(question: str, top_k: int | None = None) -> list[SearchHit]:
             + ("테스트", "test", "계획", "계획서", "출시"),
         )
     )
-    if is_defect_query and explicit_query_version and _MIN_ISSUE_VERSION and explicit_query_version < _MIN_ISSUE_VERSION:
+    if (
+        is_defect_query
+        and explicit_query_version
+        and _MIN_ISSUE_VERSION
+        and explicit_query_version < _MIN_ISSUE_VERSION
+        and not _contains_any((question or "").lower(), ("[g.h]", "go hanpass", "gohanpass", "go.hanpass"))
+    ):
         return []
     specific_defect_tokens = [
         token for token in query_tokens if token not in _GENERIC_DEFECT_TOKENS and _version_tuple(token) is None
@@ -390,7 +403,9 @@ def search(question: str, top_k: int | None = None) -> list[SearchHit]:
             continue
         if is_defect_query and _is_issue_chunk(chunk):
             target_version = _issue_target_version(chunk.text)
-            if _MIN_ISSUE_VERSION and (target_version is None or target_version < _MIN_ISSUE_VERSION):
+            if _MIN_ISSUE_VERSION and not _issue_is_gohanpass_text(chunk.text) and (
+                target_version is None or target_version < _MIN_ISSUE_VERSION
+            ):
                 continue
             if explicit_query_version:
                 if target_version == explicit_query_version:

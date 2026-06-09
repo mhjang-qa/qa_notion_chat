@@ -17,7 +17,13 @@ services:
         value: "true"
       - key: STARTUP_SYNC_MAX_INDEX_AGE_HOURS
         value: "12"
+      - key: SLACK_CHANNEL_NAME
+        value: "slice_gh-test"
+      - key: SLACK_NOTIFY_ENABLED
+        value: "true"
       - key: NOTION_TOKEN
+        sync: false
+      - key: SLACK_WEBHOOK_URL
         sync: false
       - key: SESSION_SECRET
         generateValue: true

@@ -10,6 +10,7 @@ import requests
 
 from app.core import config
 from app.services.notion_tree import NotionSyncError, _request, normalize_notion_id, retrieve_database
+from app.services.slack_notifier import send_slack_notification
 
 
 @dataclass(frozen=True)
@@ -233,6 +234,14 @@ def _normalize_platforms(target: BugReportTarget, platforms: list[str]) -> list[
     return out
 
 
+def _notion_page_url(page: dict[str, Any]) -> str:
+    url = str(page.get("url") or "").strip()
+    if url:
+        return url
+    page_id = normalize_notion_id(str(page.get("id") or ""))
+    return f"https://www.notion.so/{page_id}" if page_id else ""
+
+
 def create_bug_report(
     *,
     target_key: str,
@@ -302,12 +311,25 @@ def create_bug_report(
     except NotionSyncError:
         raise
 
+    notion_url = _notion_page_url(page)
+    try:
+        send_slack_notification(
+            title=clean_title,
+            severity="미지정",
+            priority="미지정",
+            status="Open",
+            reporter="QA Chatbot",
+            notion_url=notion_url,
+        )
+    except Exception as exc:
+        print(f"[WARN] Slack notification failed: {exc}", flush=True)
+
     return {
         "report_id": report_id,
         "target": target.label,
         "reporter": clean_reporter,
         "title": clean_title,
-        "url": page.get("url") or "",
+        "url": notion_url,
         "platforms": selected_platforms,
         "attachments": len(files),
     }

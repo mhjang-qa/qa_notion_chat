@@ -58,9 +58,62 @@ AUTH_REQUIRED=false
 USE_GEMINI=false
 STARTUP_SYNC_PRIORITY=true
 STARTUP_SYNC_MAX_INDEX_AGE_HOURS=12
+SLACK_WEBHOOK_URL=...
+SLACK_CHANNEL_NAME=slice_gh-test
+SLACK_NOTIFY_ENABLED=true
 ```
 
 Render 무료 인스턴스는 파일시스템이 휘발성이므로 런타임에 생성한 인덱스가 재시작/스핀다운 후 사라질 수 있습니다. `STARTUP_SYNC_PRIORITY=true`를 켜면 서버 시작 시 우선 검색 인덱스를 백그라운드로 자동 동기화합니다.
+
+## Slack 결함 등록 알림
+
+챗봇에서 결함 제보가 Notion DB에 정상 등록되면 Slack Incoming Webhook으로 `#slice_gh-test` 채널에 Block Kit 알림을 보냅니다. Notion 등록이 실패하거나 Validation Error/Notion API Error가 발생하면 Slack은 호출하지 않습니다. Slack 전송이 실패해도 Notion 등록 성공 상태는 유지됩니다.
+
+### Slack Webhook 생성 방법
+
+1. Slack App 관리 화면에서 Incoming Webhooks를 활성화합니다.
+2. `#slice_gh-test` 채널을 대상으로 Webhook URL을 생성합니다.
+3. 생성된 URL을 `SLACK_WEBHOOK_URL` 환경변수에 넣습니다.
+
+### 환경변수
+
+```bash
+SLACK_WEBHOOK_URL=https://hooks.slack.com/services/...
+SLACK_CHANNEL_NAME=slice_gh-test
+SLACK_NOTIFY_ENABLED=true
+```
+
+`SLACK_NOTIFY_ENABLED=false`이면 결함 등록은 그대로 동작하지만 Slack 알림은 전송하지 않습니다.
+
+### 로컬 실행
+
+`.env`에 Slack 환경변수를 추가한 뒤 서버를 실행합니다.
+
+```bash
+uvicorn app.main:app --reload --port 8010
+```
+
+브라우저에서 `http://127.0.0.1:8010` 접속 후 `결함 제보` 플로우로 실제 등록을 진행하면 Notion 등록 성공 이후 Slack 알림이 전송됩니다.
+
+### Render 설정 방법
+
+Render Dashboard의 Web Service에서 `Environment` 메뉴에 아래 값을 추가합니다.
+
+```bash
+SLACK_WEBHOOK_URL=<Slack Incoming Webhook URL>
+SLACK_CHANNEL_NAME=slice_gh-test
+SLACK_NOTIFY_ENABLED=true
+```
+
+`render.yaml`에도 `SLACK_CHANNEL_NAME`, `SLACK_NOTIFY_ENABLED`, `SLACK_WEBHOOK_URL` 항목이 포함되어 있습니다. Webhook URL은 secret 값이므로 Render에서 직접 입력해야 합니다.
+
+### 테스트 시나리오
+
+- TC-001: 결함 등록 성공 -> Slack 알림 전송, `결함 보기` 버튼에 Notion URL 포함
+- TC-002: 결함 등록 성공 + Slack Webhook 오류 -> 사용자에게 결함 등록 성공으로 표시, 서버 로그에 `[WARN] [SLACK] Notification failed`
+- TC-003: 결함 등록 실패 또는 Notion API Error -> Slack 알림 미전송
+- TC-004: `SLACK_NOTIFY_ENABLED=false` -> Slack 알림 미전송
+- TC-005: Slack 메시지에 제목, 심각도, 우선순위, 상태, 등록자, 등록일시, Notion 링크 포함
 
 ## Render 무료 인스턴스 콜드스타트 완화
 

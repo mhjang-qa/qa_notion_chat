@@ -583,41 +583,66 @@ async function sendQuestion() {
     return;
   }
 
-  const loading = addMessage("bot", "답변을 준비하고 있습니다.");
+const loading = addMessage("bot", "답변을 준비하고 있습니다.");
 
-  try {
-    const res = await fetch(apiUrl("/api/chat"), {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ question: text }),
-    });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      loading.textContent = `오류: HTTP ${res.status}`;
-      return;
-    }
-    loading.textContent = "";
-    const answerText = document.createElement("div");
-    answerText.className = "answer-text";
-    loading.appendChild(answerText);
-    await typeText(answerText, data.answer || "답변이 없습니다.");
-    const items = answerItemsBlock(data.items);
-    if (items) {
-      loading.appendChild(items);
-    } else {
-      const sources = sourceBlock(data.sources);
-      if (sources) loading.appendChild(sources);
-    }
-    scrollBottom();
-  } catch {
-    loading.textContent = "오류: 네트워크 연결 실패";
-  } finally {
-    inFlight = false;
-    btnSend.disabled = false;
-    focusQuestion();
+try {
+  const res = await fetch(apiUrl("/api/chat"), {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ question: text }),
+  });
+
+  const data = await res.json().catch(() => ({}));
+
+  if (!res.ok) {
+    loading.textContent = `오류: HTTP ${res.status}`;
+    return;
   }
-}
 
+  loading.textContent = "";
+
+  const answerText = document.createElement("div");
+  answerText.className = "answer-text";
+  loading.appendChild(answerText);
+
+  await typeText(answerText, data.answer || "답변이 없습니다.");
+
+  // 커스텀 버튼 지원
+  if (data.button && data.button.url) {
+    const buttonWrap = document.createElement("div");
+    buttonWrap.className = "sources";
+
+    const guideButton = document.createElement("a");
+    guideButton.href = data.button.url;
+    guideButton.target = "_blank";
+    guideButton.rel = "noopener noreferrer";
+    guideButton.className = "source-button";
+    guideButton.textContent = data.button.label || "바로가기";
+
+    buttonWrap.appendChild(guideButton);
+    loading.appendChild(buttonWrap);
+  }
+
+  const items = answerItemsBlock(data.items);
+
+  if (items) {
+    loading.appendChild(items);
+  } else {
+    const sources = sourceBlock(data.sources);
+    if (sources) {
+      loading.appendChild(sources);
+    }
+  }
+
+  scrollBottom();
+} catch {
+  loading.textContent = "오류: 네트워크 연결 실패";
+} finally {
+  inFlight = false;
+  btnSend.disabled = false;
+  focusQuestion();
+}
+}
 question.addEventListener("compositionstart", () => {
   composing = true;
 });

@@ -152,11 +152,9 @@ def _fixed_response(question: str) -> dict | None:
         }
 
     if any(keyword in compact for keyword in [_compact(k) for k in _HELP_KEYWORDS]):
-
+        guide_url = "https://mhjang-qa.github.io/qa_notion_chat/bug_report_guide.html"
         return {
-
             "answer": (
-
                 "버그요정 버니(BUNI) 사용법입니다.\n"
                 "1. QA 문서에 있는 키워드로 질문하세요. 예: `5.20.0 테스트 결과`, `현재 진행 중인 테스트`, `결함 현황`.\n"
                 "2. 테스트 결과서, 테스트 계획서, 결함/이슈는 우선 검색 영역으로 조회합니다.\n"
@@ -165,13 +163,15 @@ def _fixed_response(question: str) -> dict | None:
                 "5. Notion에서 확인되지 않는 내용은 추측하지 않고 찾지 못했다고 답합니다.\n"
                 "6. 결함 제보 사용법은 아래 버튼을 확인하시면 편리합니다.\n"
             ),
-            "sources": [],
+            "sources": [
+                {
+                    "title": "결함 제보 사용법",
+                    "url": guide_url,
+                    "button_label": "결함 제보 사용법 바로가기",
+                }
+            ],
             "origin": "SYSTEM",
             "mode": "help",
-            "button": {
-                "label": "결함 제보 사용법 바로가기",
-                "url": "https://mhjang-qa.github.io/qa_notion_chat/bug_report_guide.html",
-            },
         }
 
     if any(keyword in compact for keyword in [_compact(k) for k in _CAPABILITY_KEYWORDS]):

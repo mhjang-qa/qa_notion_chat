@@ -155,7 +155,7 @@ def _fixed_response(question: str) -> dict | None:
         guide_url = "https://mhjang-qa.github.io/qa_notion_chat/bug_report_guide.html"
         return {
             "answer": (
-                "버그요정 버니(BUNI) 사용법입니다.\n"
+                "버그요정 버니(BUNI) 사용법입니다.\n\n" 
                 "1. QA 문서에 있는 키워드로 질문하세요.\n예) `5.20.0 테스트 결과`, `현재 진행 중인 테스트`, `결함 현황`등 \n"
                 "2. 테스트 결과서, 테스트 계획서, 결함/이슈는 우선 검색 영역으로 조회합니다.\n"
                 "3. `결함제보`라고 입력하면 단계별로 제보 내용을 받아 Notion에 등록합니다.\n"

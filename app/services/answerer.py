@@ -6,6 +6,7 @@ import subprocess
 from collections import Counter
 
 from app.core import config
+from app.services.llm_provider import LLMQuotaExceededError, generate_text
 from app.services.notion_tree import _query_database_pages
 from app.services.retriever import SearchHit, load_index, search, source_payload
 
@@ -66,6 +67,12 @@ _DONE_WORK_RE = re.compile(
     r"(테스트|업무|항목).*(완료|종료|끝난)",
     re.IGNORECASE,
 )
+_LLM_ALLOWED_DOMAIN_RE = re.compile(
+    r"한패스|hanpass|go\s*hanpass|gohanpass|go\.hanpass|고한패스|핀테크|fintech|"
+    r"해외\s*송금|송금|결제|qr|계좌|인증|kyc|aml|환전|지갑|wallet|remittance",
+    re.IGNORECASE,
+)
+_LLM_OFFER_MAX_SCORE = 15.0
 
 
 def _compact(text: str) -> str:
@@ -258,6 +265,9 @@ def _gemini_answer(question: str, hits: list[SearchHit]) -> str:
 [답변]
 """.strip()
 
+    if config.GEMINI_API_KEY:
+        return generate_text(prompt)
+
     cmd = [config.GEMINI_CLI_BIN]
     if config.GEMINI_MODEL:
         cmd.extend(["--model", config.GEMINI_MODEL])
@@ -278,6 +288,70 @@ def _gemini_answer(question: str, hits: list[SearchHit]) -> str:
     if not answer:
         raise RuntimeError("Gemini CLI 빈 응답")
     return answer
+
+
+def _can_offer_llm(question: str) -> bool:
+    return bool(_LLM_ALLOWED_DOMAIN_RE.search(question or ""))
+
+
+def _llm_offer_response(question: str) -> dict:
+    return {
+        "answer": (
+            "QA Notion에서 바로 확인되는 내용은 찾지 못했습니다.\n"
+            "다만 한패스/Go.Hanpass 핀테크 업무 범위라면 버니가 LLM으로 일반적인 기준을 정리해볼 수 있습니다.\n"
+            "진행할까요? `예` 또는 `아니오`로 답해 주세요."
+        ),
+        "sources": [],
+        "items": [],
+        "origin": "SYSTEM",
+        "mode": "llm_offer",
+        "pending_question": question,
+    }
+
+
+def _llm_not_allowed_response() -> dict:
+    return {
+        "answer": (
+            "QA Notion에서 바로 확인되는 내용은 찾지 못했습니다.\n"
+            "LLM 보조 답변은 한패스/Go.Hanpass 핀테크 업무 범위에서만 사용할 수 있습니다.\n"
+            "예: `한패스 해외송금 인증 흐름`, `Go.Hanpass 결제 오류 대응`, `핀테크 KYC 테스트 관점`"
+        ),
+        "sources": [],
+        "items": [],
+        "origin": "SYSTEM",
+        "mode": "not_found_out_of_scope",
+    }
+
+
+def _llm_fallback_answer(question: str) -> str:
+    prompt = f"""
+너는 QA팀을 돕는 실무형 챗봇 BUNI다.
+아래 질문은 QA Notion 검색에서 근거를 찾지 못했다.
+그래도 사용자가 동의했으므로 LLM 일반 지식으로만 답한다.
+
+규칙:
+- 한패스, Go.Hanpass, 핀테크, 송금, 결제, 계좌, 인증, KYC/AML, QA 테스트 관점 안에서만 답한다.
+- 회사 내부 정책, 실제 운영 상태, 특정 Notion 데이터가 필요한 내용은 확인할 수 없다고 말한다.
+- 단정하지 말고 "일반적으로", "확인 관점" 중심으로 답한다.
+- 답변은 한국어로 5~8줄 이내로 간결하게 작성한다.
+- 결함/테스트 질문이면 확인 포인트와 다음 액션을 제안한다.
+
+[질문]
+{question}
+
+[답변]
+""".strip()
+    return generate_text(prompt)
+
+
+def _llm_quota_response() -> dict:
+    return {
+        "answer": "현재 LLM 사용량 쿼터가 모두 소진되어 답변을 생성할 수 없습니다.\n자세한 내용은 QA팀에 문의해 주세요.",
+        "sources": [],
+        "items": [],
+        "origin": "LLM",
+        "mode": "llm_quota_exceeded",
+    }
 
 
 def _dedupe_hits(hits: list[SearchHit], limit: int = 3) -> list[SearchHit]:
@@ -643,19 +717,45 @@ def _defect_status_summary() -> dict:
     }
 
 
-def answer_question(question: str) -> dict:
+def answer_question(question: str, *, allow_llm: bool = False) -> dict:
     fixed = _fixed_response(question)
     if fixed is not None:
         return fixed
 
+    if allow_llm:
+        if not _can_offer_llm(question):
+            return _llm_not_allowed_response()
+        try:
+            return {
+                "answer": _llm_fallback_answer(question),
+                "sources": [],
+                "items": [],
+                "origin": "LLM",
+                "mode": "llm_fallback",
+            }
+        except LLMQuotaExceededError:
+            return _llm_quota_response()
+        except Exception:
+            return {
+                "answer": "LLM 답변 생성에 실패했습니다. 잠시 후 다시 시도해 주세요.",
+                "sources": [],
+                "items": [],
+                "origin": "LLM",
+                "mode": "llm_error",
+            }
+
     hits = search(question)
     if not hits:
+        if _can_offer_llm(question):
+            return _llm_offer_response(question)
         return {
             "answer": NOT_FOUND,
             "sources": [],
             "origin": "NOTION",
             "mode": "not_found",
         }
+    if _can_offer_llm(question) and hits[0].score < _LLM_OFFER_MAX_SCORE:
+        return _llm_offer_response(question)
 
     mode = "extractive"
     items = _extractive_items(hits, limit=8)

@@ -10,6 +10,7 @@ let inFlight = false;
 let syncing = false;
 let composing = false;
 let reportFlow = null;
+let llmOffer = null;
 
 function applyViewportHeight() {
   const height = window.innerHeight || document.documentElement.clientHeight || 0;
@@ -191,6 +192,14 @@ function isReportGuideIntent(text) {
     /(결함|버그|오류|이슈|장애)(제보|등록|신고|접수)(가이드|방법|어떻게|절차|프로세스|안내|링크)/.test(compact) ||
     /(가이드|방법|어떻게|절차|프로세스|안내|링크)(결함|버그|오류|이슈|장애)(제보|등록|신고|접수)/.test(compact)
   );
+}
+
+function isYesIntent(text) {
+  return /^(예|네|응|ㅇㅇ|좋아|진행|해줘|yes|y|ok|okay)$/i.test((text || "").trim());
+}
+
+function isNoIntent(text) {
+  return /^(아니오|아니요|아니|ㄴㄴ|취소|그만|no|n)$/i.test((text || "").trim());
 }
 
 function reportPrompt() {
@@ -555,6 +564,31 @@ async function sendQuestion() {
   addMessage("user", text);
   question.value = "";
   question.style.height = "auto";
+  let requestText = text;
+  let allowLlm = false;
+
+  if (llmOffer) {
+    const pendingQuestion = llmOffer.question;
+    if (isYesIntent(text)) {
+      requestText = pendingQuestion;
+      allowLlm = true;
+      llmOffer = null;
+    } else if (isNoIntent(text)) {
+      llmOffer = null;
+      addMessage("bot", "알겠습니다. LLM 보조 답변은 진행하지 않겠습니다.");
+      inFlight = false;
+      btnSend.disabled = false;
+      focusQuestion();
+      return;
+    } else {
+      addMessage("bot", "`예` 또는 `아니오`로 답해 주세요. LLM 답변을 원하지 않으면 `아니오`라고 입력하면 됩니다.");
+      inFlight = false;
+      btnSend.disabled = false;
+      focusQuestion();
+      return;
+    }
+  }
+
   const reportGuideIntent = isReportGuideIntent(text);
 
   if (!reportGuideIntent && await handleReportInput(text)) {
@@ -589,7 +623,7 @@ try {
   const res = await fetch(apiUrl("/api/chat"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ question: text }),
+    body: JSON.stringify({ question: requestText, allow_llm: allowLlm }),
   });
 
   const data = await res.json().catch(() => ({}));
@@ -599,13 +633,35 @@ try {
     return;
   }
 
+  if (data.mode === "llm_offer") {
+    llmOffer = { question: data.pending_question || requestText };
+  } else {
+    llmOffer = null;
+  }
+
   loading.textContent = "";
 
   const answerText = document.createElement("div");
   answerText.className = "answer-text";
   loading.appendChild(answerText);
 
-  await typeText(answerText, data.answer || "답변이 없습니다.");
+  const answer = data.answer || "답변이 없습니다.";
+  const lines = answer.split("\n");
+
+  if (lines.length > 0) {
+    const title = document.createElement("div");
+    title.className = "answer-title";
+    title.textContent = lines[0];
+    answerText.appendChild(title);
+
+    const body = document.createElement("div");
+    body.className = "answer-body";
+    answerText.appendChild(body);
+
+    await typeText(body, lines.slice(1).join("\n"));
+  } else {
+    await typeText(answerText, answer);
+  }
 
   // 커스텀 버튼 지원
   if (data.button && data.button.url) {

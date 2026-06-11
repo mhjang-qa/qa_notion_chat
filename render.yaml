@@ -12,7 +12,11 @@ services:
       - key: AUTH_REQUIRED
         value: "false"
       - key: USE_GEMINI
-        value: "false"
+        value: "true"
+      - key: LLM_PROVIDER
+        value: "gemini"
+      - key: GEMINI_MODEL
+        value: "gemini-2.5-flash"
       - key: STARTUP_SYNC_PRIORITY
         value: "true"
       - key: STARTUP_SYNC_MAX_INDEX_AGE_HOURS
@@ -22,6 +26,8 @@ services:
       - key: SLACK_NOTIFY_ENABLED
         value: "true"
       - key: NOTION_TOKEN
+        sync: false
+      - key: GEMINI_API_KEY
         sync: false
       - key: SLACK_WEBHOOK_URL
         sync: false

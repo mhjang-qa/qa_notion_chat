@@ -13,6 +13,7 @@ router = APIRouter()
 
 class ChatRequest(BaseModel):
     question: str
+    allow_llm: bool = False
 
 
 class BugReportRequest(BaseModel):
@@ -30,7 +31,7 @@ def chat(req: ChatRequest):
     question = (req.question or "").strip()
     if not question:
         return {"answer": "질문을 입력해 주세요.", "sources": [], "origin": "SYSTEM", "mode": "empty"}
-    return answer_question(question)
+    return answer_question(question, allow_llm=req.allow_llm)
 
 
 @router.get("/bug-report/targets")

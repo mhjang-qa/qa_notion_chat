@@ -55,7 +55,10 @@ Render 환경 변수에 최소 아래 값은 직접 설정해야 합니다.
 ```bash
 NOTION_TOKEN=...
 AUTH_REQUIRED=false
-USE_GEMINI=false
+USE_GEMINI=true
+LLM_PROVIDER=gemini
+GEMINI_API_KEY=...
+GEMINI_MODEL=gemini-2.5-flash
 STARTUP_SYNC_PRIORITY=true
 STARTUP_SYNC_MAX_INDEX_AGE_HOURS=12
 SLACK_WEBHOOK_URL=...
@@ -64,6 +67,23 @@ SLACK_NOTIFY_ENABLED=true
 ```
 
 Render 무료 인스턴스는 파일시스템이 휘발성이므로 런타임에 생성한 인덱스가 재시작/스핀다운 후 사라질 수 있습니다. `STARTUP_SYNC_PRIORITY=true`를 켜면 서버 시작 시 우선 검색 인덱스를 백그라운드로 자동 동기화합니다.
+
+## LLM 보조 답변
+
+정형 질문이나 Notion 검색 결과로 답할 수 없는 경우, 챗봇은 즉시 LLM 답변을 만들지 않고 사용자에게 먼저 확인합니다. 사용자가 `예`라고 답한 경우에만 `allow_llm=true`로 다시 요청해 LLM 보조 답변을 생성합니다.
+
+LLM 보조 답변은 한패스/Go.Hanpass/핀테크 업무 범위에 제한됩니다. 범위 밖 질문은 일반 LLM 답변을 생성하지 않습니다.
+
+Render 또는 로컬 `.env`에 아래 값을 설정합니다.
+
+```bash
+LLM_PROVIDER=gemini
+GEMINI_API_KEY=<Google Gemini API Key>
+GEMINI_MODEL=gemini-2.5-flash
+USE_GEMINI=true
+```
+
+`GEMINI_API_KEY`가 있으면 Gemini CLI 없이 API로 동작합니다. API Key가 없고 `USE_GEMINI=true`인 경우 기존 `GEMINI_CLI_BIN` 경로를 사용합니다.
 
 ## Slack 결함 등록 알림
 

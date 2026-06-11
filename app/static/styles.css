@@ -569,4 +569,12 @@ h1 {
     min-height: 42px;
     padding-inline: 12px;
   }
+  .answer-title {
+    font-weight: 700;
+    font-size: 15px;
+    margin-bottom: 8px;
+  }
+  .answer-body {
+    white-space: pre-wrap;
+  }
 }

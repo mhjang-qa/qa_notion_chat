@@ -15,6 +15,10 @@ class LLMQuotaExceededError(LLMProviderError):
     pass
 
 
+class LLMIncompleteResponseError(LLMProviderError):
+    pass
+
+
 def _is_quota_error(status_code: int, body: str) -> bool:
     lowered = (body or "").lower()
     return status_code == 429 or any(
@@ -29,13 +33,8 @@ def _is_quota_error(status_code: int, body: str) -> bool:
     )
 
 
-def _gemini_generate(prompt: str) -> str:
-    if not config.GEMINI_API_KEY:
-        raise LLMProviderError("GEMINI_API_KEY가 설정되지 않았습니다.")
-
-    model = config.GEMINI_MODEL or "gemini-2.5-flash"
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
-    payload: dict[str, Any] = {
+def _gemini_payload(prompt: str, *, max_output_tokens: int) -> dict[str, Any]:
+    return {
         "contents": [
             {
                 "role": "user",
@@ -45,9 +44,18 @@ def _gemini_generate(prompt: str) -> str:
         "generationConfig": {
             "temperature": 0.2,
             "topP": 0.8,
-            "maxOutputTokens": 900,
+            "maxOutputTokens": max_output_tokens,
         },
     }
+
+
+def _gemini_generate_once(prompt: str, *, max_output_tokens: int) -> str:
+    if not config.GEMINI_API_KEY:
+        raise LLMProviderError("GEMINI_API_KEY가 설정되지 않았습니다.")
+
+    model = config.GEMINI_MODEL or "gemini-2.5-flash"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
+    payload = _gemini_payload(prompt, max_output_tokens=max_output_tokens)
 
     try:
         response = requests.post(url, params={"key": config.GEMINI_API_KEY}, json=payload, timeout=45)
@@ -62,11 +70,24 @@ def _gemini_generate(prompt: str) -> str:
     candidates = data.get("candidates") or []
     if not candidates:
         raise LLMProviderError("Gemini API 응답에 후보 답변이 없습니다.")
-    parts = ((candidates[0].get("content") or {}).get("parts") or [])
+    candidate = candidates[0]
+    finish_reason = str(candidate.get("finishReason") or "").upper()
+    if finish_reason and finish_reason not in {"STOP", "FINISH_REASON_UNSPECIFIED"}:
+        if finish_reason == "MAX_TOKENS":
+            raise LLMIncompleteResponseError("Gemini API 응답이 토큰 제한으로 중단되었습니다.")
+        raise LLMProviderError(f"Gemini API 응답이 중단되었습니다: {finish_reason}")
+    parts = ((candidate.get("content") or {}).get("parts") or [])
     answer = "".join(str(part.get("text") or "") for part in parts if isinstance(part, dict)).strip()
     if not answer:
         raise LLMProviderError("Gemini API 빈 응답")
     return answer
+
+
+def _gemini_generate(prompt: str) -> str:
+    try:
+        return _gemini_generate_once(prompt, max_output_tokens=2048)
+    except LLMIncompleteResponseError:
+        return _gemini_generate_once(prompt, max_output_tokens=4096)
 
 
 def generate_text(prompt: str) -> str:

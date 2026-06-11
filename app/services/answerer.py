@@ -6,7 +6,7 @@ import subprocess
 from collections import Counter
 
 from app.core import config
-from app.services.llm_provider import LLMQuotaExceededError, generate_text
+from app.services.llm_provider import LLMIncompleteResponseError, LLMQuotaExceededError, generate_text
 from app.services.notion_tree import _query_database_pages
 from app.services.retriever import SearchHit, load_index, search, source_payload
 
@@ -298,7 +298,7 @@ def _llm_offer_response(question: str) -> dict:
     return {
         "answer": (
             "QA Notion에서 바로 확인되는 내용은 찾지 못했습니다.\n"
-            "다만 한패스/Go.Hanpass 핀테크 업무 범위라면 버니가 LLM으로 일반적인 기준을 정리해볼 수 있습니다.\n"
+            "다만 원하신다면 버니가 LLM으로 일반적인 기준을 정리해볼 수 있습니다.\n"
             "진행할까요? `예` 또는 `아니오`로 답해 주세요."
         ),
         "sources": [],
@@ -330,10 +330,10 @@ def _llm_fallback_answer(question: str) -> str:
 그래도 사용자가 동의했으므로 LLM 일반 지식으로만 답한다.
 
 규칙:
-- 한패스, Go.Hanpass, 핀테크, 송금, 결제, 계좌, 인증, KYC/AML, QA 테스트 관점 안에서만 답한다.
-- 회사 내부 정책, 실제 운영 상태, 특정 Notion 데이터가 필요한 내용은 확인할 수 없다고 말한다.
+- 한패스, Go.Hanpass, 핀테크, 송금, 결제, 계좌, 인증, KYC/AML 관점 안에서만 답한다.
 - 단정하지 말고 "일반적으로", "확인 관점" 중심으로 답한다.
-- 답변은 한국어로 5~8줄 이내로 간결하게 작성한다.
+- 답변은 한국어로 5~6줄 이내로 간결하게 작성한다.
+- 문장을 중간에 끊지 말고 완결된 문장만 작성한다.
 - 결함/테스트 질문이면 확인 포인트와 다음 액션을 제안한다.
 
 [질문]
@@ -351,6 +351,16 @@ def _llm_quota_response() -> dict:
         "items": [],
         "origin": "LLM",
         "mode": "llm_quota_exceeded",
+    }
+
+
+def _llm_incomplete_response() -> dict:
+    return {
+        "answer": "LLM 답변이 길어 생성이 중단되었습니다. 질문 범위를 좁혀 다시 요청해 주세요.\n자세한 내용은 QA팀에 문의해 주세요.",
+        "sources": [],
+        "items": [],
+        "origin": "LLM",
+        "mode": "llm_incomplete",
     }
 
 
@@ -735,6 +745,8 @@ def answer_question(question: str, *, allow_llm: bool = False) -> dict:
             }
         except LLMQuotaExceededError:
             return _llm_quota_response()
+        except LLMIncompleteResponseError:
+            return _llm_incomplete_response()
         except Exception:
             return {
                 "answer": "LLM 답변 생성에 실패했습니다. 잠시 후 다시 시도해 주세요.",

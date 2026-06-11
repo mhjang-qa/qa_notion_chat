@@ -655,9 +655,15 @@ try {
   loading.appendChild(answerText);
 
   const answer = data.answer || "답변이 없습니다.";
+  const instantAnswer = data.origin === "LLM" || String(data.mode || "").startsWith("llm_");
   const lines = answer.split("\n");
 
-  if (lines.length > 0) {
+  if (instantAnswer) {
+    const body = document.createElement("div");
+    body.className = "answer-body";
+    body.textContent = answer;
+    answerText.appendChild(body);
+  } else if (lines.length > 0) {
     const title = document.createElement("div");
     title.className = "answer-title";
     title.textContent = lines[0];

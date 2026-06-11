@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import time
 from typing import Any
 
 import requests
@@ -26,6 +27,10 @@ class LLMBlockedResponseError(LLMProviderError):
     pass
 
 
+class LLMTransientProviderError(LLMProviderError):
+    pass
+
+
 def _is_quota_error(status_code: int, body: str) -> bool:
     lowered = (body or "").lower()
     return status_code == 429 or any(
@@ -38,6 +43,29 @@ def _is_quota_error(status_code: int, body: str) -> bool:
             "too many requests",
         )
     )
+
+
+def _is_transient_error(status_code: int, body: str) -> bool:
+    lowered = (body or "").lower()
+    return status_code in {500, 502, 503, 504} or any(
+        token in lowered
+        for token in (
+            "unavailable",
+            "high demand",
+            "try again later",
+            "temporarily",
+        )
+    )
+
+
+def _model_candidates() -> list[str]:
+    primary = config.GEMINI_MODEL or "gemini-2.5-flash"
+    fallback = config.GEMINI_FALLBACK_MODEL or "gemini-2.5-flash"
+    models: list[str] = []
+    for model in (primary, fallback):
+        if model and model not in models:
+            models.append(model)
+    return models
 
 
 def _gemini_payload(prompt: str, *, max_output_tokens: int) -> dict[str, Any]:
@@ -56,11 +84,10 @@ def _gemini_payload(prompt: str, *, max_output_tokens: int) -> dict[str, Any]:
     }
 
 
-def _gemini_generate_once(prompt: str, *, max_output_tokens: int) -> str:
+def _gemini_generate_once(prompt: str, *, model: str, max_output_tokens: int) -> str:
     if not config.GEMINI_API_KEY:
         raise LLMProviderError("GEMINI_API_KEY가 설정되지 않았습니다.")
 
-    model = config.GEMINI_MODEL or "gemini-2.5-flash"
     url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
     payload = _gemini_payload(prompt, max_output_tokens=max_output_tokens)
 
@@ -71,6 +98,9 @@ def _gemini_generate_once(prompt: str, *, max_output_tokens: int) -> str:
     if response.status_code >= 400:
         if _is_quota_error(response.status_code, response.text):
             raise LLMQuotaExceededError(f"Gemini API 쿼터 초과 ({response.status_code}): {response.text}")
+        if _is_transient_error(response.status_code, response.text):
+            logger.warning("[LLM] Gemini transient API error model=%s status=%s body=%s", model, response.status_code, response.text[:1000])
+            raise LLMTransientProviderError(f"Gemini API 일시 오류 ({response.status_code}): {response.text}")
         logger.warning("[LLM] Gemini API error status=%s body=%s", response.status_code, response.text[:1000])
         raise LLMProviderError(f"Gemini API 오류 ({response.status_code}): {response.text}")
 
@@ -97,10 +127,23 @@ def _gemini_generate_once(prompt: str, *, max_output_tokens: int) -> str:
 
 
 def _gemini_generate(prompt: str) -> str:
-    try:
-        return _gemini_generate_once(prompt, max_output_tokens=2048)
-    except LLMIncompleteResponseError:
-        return _gemini_generate_once(prompt, max_output_tokens=4096)
+    last_transient_error: LLMTransientProviderError | None = None
+    for model in _model_candidates():
+        for attempt in range(2):
+            try:
+                try:
+                    return _gemini_generate_once(prompt, model=model, max_output_tokens=2048)
+                except LLMIncompleteResponseError:
+                    return _gemini_generate_once(prompt, model=model, max_output_tokens=4096)
+            except LLMTransientProviderError as exc:
+                last_transient_error = exc
+                if attempt == 0:
+                    time.sleep(0.8)
+                    continue
+                break
+    if last_transient_error is not None:
+        raise last_transient_error
+    raise LLMProviderError("Gemini API 답변 생성 실패")
 
 
 def generate_text(prompt: str) -> str:

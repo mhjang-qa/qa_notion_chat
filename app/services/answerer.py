@@ -12,6 +12,7 @@ from app.services.llm_provider import (
     LLMIncompleteResponseError,
     LLMProviderError,
     LLMQuotaExceededError,
+    LLMTransientProviderError,
     generate_text,
 )
 from app.services.notion_tree import _query_database_pages
@@ -426,6 +427,16 @@ def _llm_provider_error_response() -> dict:
     }
 
 
+def _llm_transient_response() -> dict:
+    return {
+        "answer": "현재 Gemini 모델 사용량이 높아 LLM 답변을 생성하지 못했습니다. 잠시 후 다시 시도해 주세요.\n자세한 내용은 QA팀에 문의해 주세요.",
+        "sources": [],
+        "items": [],
+        "origin": "LLM",
+        "mode": "llm_transient_error",
+    }
+
+
 def _dedupe_hits(hits: list[SearchHit], limit: int = 3) -> list[SearchHit]:
     out: list[SearchHit] = []
     seen: set[str] = set()
@@ -811,6 +822,9 @@ def answer_question(question: str, *, allow_llm: bool = False) -> dict:
             return _llm_incomplete_response()
         except LLMBlockedResponseError:
             return _llm_blocked_response()
+        except LLMTransientProviderError as exc:
+            logger.warning("[LLM] Transient provider error after retries: %s", exc)
+            return _llm_transient_response()
         except LLMProviderError as exc:
             logger.exception("[LLM] Provider error: %s", exc)
             return _llm_provider_error_response()

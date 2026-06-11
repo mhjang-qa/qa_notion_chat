@@ -3,12 +3,21 @@ from __future__ import annotations
 import os
 import re
 import subprocess
+import logging
 from collections import Counter
 
 from app.core import config
-from app.services.llm_provider import LLMIncompleteResponseError, LLMQuotaExceededError, generate_text
+from app.services.llm_provider import (
+    LLMBlockedResponseError,
+    LLMIncompleteResponseError,
+    LLMProviderError,
+    LLMQuotaExceededError,
+    generate_text,
+)
 from app.services.notion_tree import _query_database_pages
 from app.services.retriever import SearchHit, load_index, search, source_payload
+
+logger = logging.getLogger(__name__)
 
 
 NOT_FOUND = "요청한 조건과 일치하는 내용을 QA Notion에서 찾지 못했습니다."
@@ -299,7 +308,8 @@ def _llm_offer_response(question: str) -> dict:
         "answer": (
             "QA Notion에서 바로 확인되는 내용은 찾지 못했습니다.\n"
             "다만, 원하신다면 버니(BUNI)가 LLM을 활용하여 일반적인 관점에서 내용을 정리하고 답변을 제공할 수 있습니다.\n"
-            "진행할까요? `예` 또는 `아니오`로 답해 주세요."
+            "진행할까요?\n" 
+            "`예` 또는 `아니오`로 답해 주세요."
         ),
         "sources": [],
         "items": [],
@@ -393,6 +403,26 @@ def _llm_incomplete_response() -> dict:
         "items": [],
         "origin": "LLM",
         "mode": "llm_incomplete",
+    }
+
+
+def _llm_blocked_response() -> dict:
+    return {
+        "answer": "LLM 답변 생성이 제한되었습니다. 질문을 조금 더 구체적으로 바꿔 다시 요청해 주세요.\n자세한 내용은 QA팀에 문의해 주세요.",
+        "sources": [],
+        "items": [],
+        "origin": "LLM",
+        "mode": "llm_blocked",
+    }
+
+
+def _llm_provider_error_response() -> dict:
+    return {
+        "answer": "LLM 설정 또는 API 호출 중 오류가 발생했습니다. Render 로그를 확인해 주세요.\n자세한 내용은 QA팀에 문의해 주세요.",
+        "sources": [],
+        "items": [],
+        "origin": "LLM",
+        "mode": "llm_provider_error",
     }
 
 
@@ -779,7 +809,13 @@ def answer_question(question: str, *, allow_llm: bool = False) -> dict:
             return _llm_quota_response()
         except LLMIncompleteResponseError:
             return _llm_incomplete_response()
-        except Exception:
+        except LLMBlockedResponseError:
+            return _llm_blocked_response()
+        except LLMProviderError as exc:
+            logger.exception("[LLM] Provider error: %s", exc)
+            return _llm_provider_error_response()
+        except Exception as exc:
+            logger.exception("[LLM] Fallback answer failed: %s", exc)
             return {
                 "answer": "LLM 답변 생성에 실패했습니다. 잠시 후 다시 시도해 주세요.",
                 "sources": [],

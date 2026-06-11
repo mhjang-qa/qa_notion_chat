@@ -1,10 +1,13 @@
 from __future__ import annotations
 
+import logging
 from typing import Any
 
 import requests
 
 from app.core import config
+
+logger = logging.getLogger(__name__)
 
 
 class LLMProviderError(RuntimeError):
@@ -16,6 +19,10 @@ class LLMQuotaExceededError(LLMProviderError):
 
 
 class LLMIncompleteResponseError(LLMProviderError):
+    pass
+
+
+class LLMBlockedResponseError(LLMProviderError):
     pass
 
 
@@ -64,17 +71,23 @@ def _gemini_generate_once(prompt: str, *, max_output_tokens: int) -> str:
     if response.status_code >= 400:
         if _is_quota_error(response.status_code, response.text):
             raise LLMQuotaExceededError(f"Gemini API 쿼터 초과 ({response.status_code}): {response.text}")
+        logger.warning("[LLM] Gemini API error status=%s body=%s", response.status_code, response.text[:1000])
         raise LLMProviderError(f"Gemini API 오류 ({response.status_code}): {response.text}")
 
     data = response.json()
     candidates = data.get("candidates") or []
     if not candidates:
+        logger.warning("[LLM] Gemini response has no candidates: %s", str(data)[:1000])
         raise LLMProviderError("Gemini API 응답에 후보 답변이 없습니다.")
     candidate = candidates[0]
     finish_reason = str(candidate.get("finishReason") or "").upper()
     if finish_reason and finish_reason not in {"STOP", "FINISH_REASON_UNSPECIFIED"}:
         if finish_reason == "MAX_TOKENS":
             raise LLMIncompleteResponseError("Gemini API 응답이 토큰 제한으로 중단되었습니다.")
+        if finish_reason in {"SAFETY", "RECITATION", "BLOCKLIST", "PROHIBITED_CONTENT", "SPII"}:
+            logger.warning("[LLM] Gemini response blocked finish_reason=%s data=%s", finish_reason, str(data)[:1000])
+            raise LLMBlockedResponseError(f"Gemini API 응답이 정책에 의해 제한되었습니다: {finish_reason}")
+        logger.warning("[LLM] Gemini response stopped finish_reason=%s data=%s", finish_reason, str(data)[:1000])
         raise LLMProviderError(f"Gemini API 응답이 중단되었습니다: {finish_reason}")
     parts = ((candidate.get("content") or {}).get("parts") or [])
     answer = "".join(str(part.get("text") or "") for part in parts if isinstance(part, dict)).strip()

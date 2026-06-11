@@ -56,16 +56,25 @@ async function typeText(el, text, baseMs = 18) {
   el.textContent = "";
   el.classList.add("typing");
 
-  for (const ch of content) {
-    el.textContent += ch;
-    scrollBottom();
+  if (content.length > 260) {
+    const chunkSize = Math.max(4, Math.ceil(content.length / 120));
+    for (let index = 0; index < content.length; index += chunkSize) {
+      el.textContent += content.slice(index, index + chunkSize);
+      scrollBottom();
+      await sleep(8);
+    }
+  } else {
+    for (const ch of content) {
+      el.textContent += ch;
+      scrollBottom();
 
-    let delay = baseMs;
-    if (ch === "\n") delay += 90;
-    else if (".!?。？！".includes(ch)) delay += 70;
-    else if (",，:;".includes(ch)) delay += 35;
+      let delay = baseMs;
+      if (ch === "\n") delay += 90;
+      else if (".!?。？！".includes(ch)) delay += 70;
+      else if (",，:;".includes(ch)) delay += 35;
 
-    await sleep(delay);
+      await sleep(delay);
+    }
   }
 
   el.classList.remove("typing");

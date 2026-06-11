@@ -5,6 +5,7 @@ import re
 import subprocess
 import logging
 from collections import Counter
+from typing import Any
 
 from app.core import config
 from app.services.llm_provider import (
@@ -338,8 +339,8 @@ def _llm_not_allowed_response() -> dict:
     return {
         "answer": (
             "QA Notion에서 바로 확인되는 내용은 찾지 못했습니다.\n"
-            "LLM 보조 답변은 한패스/Go.Hanpass 핀테크 업무 범위에서만 사용할 수 있습니다.\n"
-            "예: `한패스 해외송금 인증 흐름`, `Go.Hanpass 결제 오류 대응`, `핀테크 KYC 테스트 관점`"
+            "LLM 보조 답변은 한패스/GoHanpass 핀테크 업무 범위에서만 사용할 수 있습니다.\n"
+            "예: `한패스 해외송금 인증 흐름`, `GoHanpass 결제 오류 대응`, `핀테크 KYC 테스트 관점`"
         ),
         "sources": [],
         "items": [],
@@ -358,7 +359,7 @@ def _llm_fallback_answer(question: str) -> str:
 [답변 규칙]
 
 1. 답변 범위
-- 한패스, Go.Hanpass, 핀테크, 송금, 결제, 계좌, 인증, KYC/AML 관련 질문은 해당 도메인 관점에서 답변한다.
+ - 한패스, GoHanpass, 핀테크, 송금, 결제, 계좌, 인증, KYC/AML 관련 질문은 해당 도메인 관점에서 답변한다.
 - 그 외 일반 질문은 일반적인 지식으로 답변한다.
 
 2. 답변 원칙
@@ -610,13 +611,23 @@ def _defect_status_text(page: dict) -> str:
     return _defect_prop_text(props.get("상태"))
 
 
+def _defect_database_id(page: dict[str, Any]) -> str:
+    parent = page.get("parent") or {}
+    if not isinstance(parent, dict):
+        return ""
+    return str(parent.get("database_id") or "").replace("-", "").strip().lower()
+
+
 def _defect_service_group(page: dict) -> str:
+    database_id = _defect_database_id(page)
+    if database_id == config.VISIT_HOME_BUG_REPORT_DB_ID.replace("-", "").strip().lower():
+        return "GoHanpass"
     target_text = _defect_target_text(page)
     if re.search(r"^\s*\[G\.H\]", target_text, re.IGNORECASE):
-        return "Go.Hanpass"
+        return "GoHanpass"
     text = str(page.get("text") or "")
     if re.search(r"\[G\.H\]|go\.hanpass|gohanpass|go hanpass", text, re.M | re.I):
-        return "Go.Hanpass"
+        return "GoHanpass"
     haystack = "\n".join(
         [
             str(page.get("title") or ""),
@@ -626,8 +637,21 @@ def _defect_service_group(page: dict) -> str:
         ]
     ).lower()
     if re.search(r"go\s*hanpass|gohanpass|go\.hanpass", haystack, re.IGNORECASE):
-        return "Go.Hanpass"
+        return "GoHanpass"
     return "한패스"
+
+
+def _defect_summary_pages() -> list[dict[str, Any]]:
+    pages: list[dict[str, Any]] = []
+    for database_id in (
+        config.QA_PRIORITY_DEFECT_PAGE_ID,
+        config.HANPASS_BUG_REPORT_DB_ID,
+        config.VISIT_HOME_BUG_REPORT_DB_ID,
+    ):
+        if not database_id:
+            continue
+        pages.extend(_query_database_pages(database_id, limit=800))
+    return pages
 
 
 def _line_value(text: str, names: tuple[str, ...]) -> str:
@@ -767,11 +791,11 @@ def _work_status_summary(status_group: str) -> dict | None:
 
 
 def _defect_status_summary() -> dict:
-    pages = _query_database_pages(config.QA_PRIORITY_DEFECT_PAGE_ID, limit=800)
+    pages = _defect_summary_pages()
     groups = {
         "전체": Counter(),
         "한패스": Counter(),
-        "Go.Hanpass": Counter(),
+        "GoHanpass": Counter(),
     }
     for page in pages:
         if not isinstance(page, dict):
@@ -794,7 +818,7 @@ def _defect_status_summary() -> dict:
         "현재까지 등록된 결함 개수 요약입니다.\n\n"
         f"{line('전체', groups['전체'])}\n"
         f"{line('한패스', groups['한패스'])}\n"
-        f"{line('Go.Hanpass', groups['Go.Hanpass'])}\n\n"
+        f"{line('GoHanpass', groups['GoHanpass'])}\n\n"
         "특정 항목을 자세히 보려면 `상세 결함 검색 \"검색어\"` 형식으로 입력해 주세요.\n"
         "예: `상세 결함 검색 회원가입`, `상세 결함 검색 5.20.0`"
     )

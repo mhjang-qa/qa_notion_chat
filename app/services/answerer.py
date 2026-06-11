@@ -31,6 +31,10 @@ _CASUAL_CHAT_RE = re.compile(
     r"(잡담|심심|놀아줘|농담|기분\s*어때|점심|저녁|뭐\s*먹|누구를\s*닮|누구\s*닮)",
     re.IGNORECASE,
 )
+_OUT_OF_SCOPE_RE = re.compile(
+    r"(날씨|기온|비\s*와|눈\s*와|미세먼지|뉴스|주가|환율|맛집|영화|운세|로또|실시간)",
+    re.IGNORECASE,
+)
 _HELP_KEYWORDS = (
     "사용법",
     "어떻게 써",
@@ -121,6 +125,9 @@ def _fixed_response(question: str) -> dict | None:
 
     if _CASUAL_CHAT_RE.search(raw):
         return _casual_chat_response(raw)
+
+    if _OUT_OF_SCOPE_RE.search(raw):
+        return _out_of_scope_response()
 
     if _REPORT_GUIDE_RE.search(raw) or any(
         token in compact
@@ -233,6 +240,16 @@ def _casual_chat_response(question: str) -> dict:
         "items": [],
         "origin": "SYSTEM",
         "mode": "casual_guardrail",
+    }
+
+
+def _out_of_scope_response() -> dict:
+    return {
+        "answer": "실시간 정보나 일반 생활 정보는 제가 직접 확인할 수 없습니다.\n저는 QA Notion 문서와 결함 제보, 테스트 현황을 기준으로 답변합니다.",
+        "sources": [],
+        "items": [],
+        "origin": "SYSTEM",
+        "mode": "out_of_scope",
     }
 
 

@@ -663,7 +663,7 @@ try {
     body.className = "answer-body";
     body.textContent = answer;
     answerText.appendChild(body);
-  } else if (lines.length > 0) {
+  } else if (lines.length > 1) {
     const title = document.createElement("div");
     title.className = "answer-title";
     title.textContent = lines[0];

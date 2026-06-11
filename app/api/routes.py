@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import logging
+
 from fastapi import APIRouter, File, HTTPException, UploadFile
 from pydantic import BaseModel
 
@@ -7,6 +9,8 @@ from app.services.answerer import answer_question
 from app.services.bug_reporter import bug_report_targets, create_bug_report, upload_file_to_notion
 from app.services.notion_tree import NotionSyncError, sync_priority_pages, sync_qa_pages
 from app.services.retriever import load_index
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -31,7 +35,17 @@ def chat(req: ChatRequest):
     question = (req.question or "").strip()
     if not question:
         return {"answer": "질문을 입력해 주세요.", "sources": [], "origin": "SYSTEM", "mode": "empty"}
-    return answer_question(question, allow_llm=req.allow_llm)
+    try:
+        return answer_question(question, allow_llm=req.allow_llm)
+    except Exception as exc:
+        logger.exception("[CHAT] answer generation failed: %s", exc)
+        return {
+            "answer": "답변 처리 중 일시적인 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.",
+            "sources": [],
+            "items": [],
+            "origin": "SYSTEM",
+            "mode": "server_error",
+        }
 
 
 @router.get("/bug-report/targets")

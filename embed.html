@@ -4,10 +4,205 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>Bug Fairy BUNI</title>
-  <link rel="stylesheet" href="https://qa-notion-chat.onrender.com/static/styles.css?v=buni-1" />
+  <style>
+    :root {
+      color-scheme: light;
+      --buni-ink: #172033;
+      --buni-muted: #69758a;
+      --buni-line: #d7e0ee;
+      --buni-mint: #0f8275;
+      --buni-bg: #eef3f9;
+      --buni-panel: #ffffff;
+      --buni-warm: #fff4c7;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      min-width: 0;
+      margin: 0;
+      overflow-x: hidden;
+      background: var(--buni-bg);
+      color: var(--buni-ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+    }
+
+    .buni-boot {
+      display: grid;
+      min-height: 100vh;
+      place-items: center;
+      padding: 24px;
+      background:
+        radial-gradient(circle at 25% 20%, rgba(15, 130, 117, 0.10), transparent 30%),
+        linear-gradient(180deg, #f8fbff 0%, #eef3f9 100%);
+    }
+
+    .buni-boot[hidden],
+    .chat-widget[hidden] {
+      display: none !important;
+    }
+
+    .buni-boot-card {
+      width: min(520px, 100%);
+      padding: 28px 24px;
+      border: 1px solid var(--buni-line);
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.92);
+      box-shadow: 0 18px 44px rgba(33, 55, 85, 0.10);
+      text-align: center;
+    }
+
+    .buni-mark {
+      display: inline-grid;
+      width: 72px;
+      height: 72px;
+      margin-bottom: 18px;
+      place-items: center;
+      border: 1px solid #b9dcd6;
+      border-radius: 50%;
+      background: linear-gradient(145deg, #ffffff, #dff3f0);
+      color: var(--buni-mint);
+      font-size: 30px;
+      font-weight: 800;
+      letter-spacing: 0;
+      animation: buni-float 1.8s ease-in-out infinite;
+    }
+
+    .buni-boot-card h1 {
+      margin: 0 0 8px;
+      font-size: clamp(22px, 4vw, 30px);
+      line-height: 1.2;
+      letter-spacing: 0;
+    }
+
+    .buni-boot-card p {
+      margin: 0;
+      color: var(--buni-muted);
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    .buni-status {
+      min-height: 24px;
+      margin-top: 16px;
+      color: var(--buni-ink);
+      font-weight: 700;
+    }
+
+    .buni-progress {
+      position: relative;
+      height: 8px;
+      margin: 22px auto 0;
+      overflow: hidden;
+      border-radius: 999px;
+      background: #e6edf6;
+    }
+
+    .buni-progress::after {
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 42%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--buni-mint), #8fcfc5);
+      content: "";
+      animation: buni-progress 1.35s ease-in-out infinite;
+    }
+
+    .buni-hint {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 18px;
+      padding: 8px 12px;
+      border: 1px solid #f0d88a;
+      border-radius: 999px;
+      background: var(--buni-warm);
+      color: #4d4a32;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .buni-hint::before {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--buni-mint);
+      content: "";
+      animation: buni-pulse 1.2s ease-in-out infinite;
+    }
+
+    @keyframes buni-float {
+      0%,
+      100% {
+        transform: translateY(0);
+      }
+      50% {
+        transform: translateY(-6px);
+      }
+    }
+
+    @keyframes buni-progress {
+      0% {
+        transform: translateX(-110%);
+      }
+      100% {
+        transform: translateX(260%);
+      }
+    }
+
+    @keyframes buni-pulse {
+      0%,
+      100% {
+        opacity: 0.45;
+      }
+      50% {
+        opacity: 1;
+      }
+    }
+
+    @media (max-width: 520px) {
+      .buni-boot {
+        padding: 14px;
+      }
+
+      .buni-boot-card {
+        padding: 24px 18px;
+        border-radius: 14px;
+      }
+    }
+  </style>
+  <link
+    rel="preload"
+    href="https://qa-notion-chat.onrender.com/static/styles.css?v=buni-1"
+    as="style"
+    onload="this.onload=null;this.rel='stylesheet';window.BUNI_ASSET_READY=window.BUNI_ASSET_READY||{};window.BUNI_ASSET_READY.css=true;if(window.BUNI_TRY_SHOW_CHAT)window.BUNI_TRY_SHOW_CHAT();"
+    onerror="window.BUNI_BOOT_PENDING_ERROR='스타일을 불러오지 못했습니다. 잠시 후 새로고침해 주세요.';if(window.BUNI_BOOT_ERROR)window.BUNI_BOOT_ERROR(window.BUNI_BOOT_PENDING_ERROR);"
+  />
+  <noscript>
+    <link rel="stylesheet" href="https://qa-notion-chat.onrender.com/static/styles.css?v=buni-1" />
+  </noscript>
 </head>
 <body>
-  <section class="chat-widget" aria-label="QA Chatbot">
+  <div id="buniBoot" class="buni-boot" role="status" aria-live="polite">
+    <div class="buni-boot-card">
+      <div class="buni-mark" aria-hidden="true">B</div>
+      <h1>버니가 준비 중입니다</h1>
+      <p>Render 서버가 깨어나는 동안 잠시만 기다려 주세요.</p>
+      <p id="buniBootText" class="buni-status">버니가 노션에서 깨어나는 중입니다.</p>
+      <div class="buni-progress" aria-hidden="true"></div>
+      <div class="buni-hint">초기 접속은 조금 더 걸릴 수 있습니다</div>
+    </div>
+  </div>
+
+  <section id="chatWidget" class="chat-widget" aria-label="QA Chatbot" hidden>
     <header class="chat-header">
       <img
         class="hanq-avatar header-avatar"
@@ -32,9 +227,48 @@
   </section>
 
   <script>
+    window.BUNI_ASSET_READY = window.BUNI_ASSET_READY || {};
+    window.BUNI_ASSET_READY.css = Boolean(window.BUNI_ASSET_READY.css);
+    window.BUNI_ASSET_READY.js = Boolean(window.BUNI_ASSET_READY.js);
+    window.BUNI_BOOT_PENDING_ERROR = window.BUNI_BOOT_PENDING_ERROR || "";
+    window.BUNI_BOOT_MESSAGES = [
+      "버니가 노션에서 깨어나는 중입니다.",
+      "버니가 버그를 정리 중입니다.",
+      "QA 문서를 펼쳐보고 있습니다.",
+      "결함 제보함을 준비하고 있습니다."
+    ];
+    window.BUNI_BOOT_INDEX = 0;
     window.HYO_CHAT_API_BASE = "https://qa-notion-chat.onrender.com";
     window.HYO_CHAT_ASSET_BASE = "https://qa-notion-chat.onrender.com";
+
+    window.BUNI_TRY_SHOW_CHAT = function () {
+      if (!window.BUNI_ASSET_READY.css || !window.BUNI_ASSET_READY.js) return;
+      var boot = document.getElementById("buniBoot");
+      var chat = document.getElementById("chatWidget");
+      if (boot) boot.hidden = true;
+      if (chat) chat.hidden = false;
+    };
+
+    window.BUNI_BOOT_ERROR = function (message) {
+      var text = document.getElementById("buniBootText");
+      if (text) text.textContent = message || "버니를 불러오지 못했습니다. 잠시 후 새로고침해 주세요.";
+    };
+
+    if (window.BUNI_BOOT_PENDING_ERROR) {
+      window.BUNI_BOOT_ERROR(window.BUNI_BOOT_PENDING_ERROR);
+    }
+
+    window.BUNI_BOOT_TIMER = window.setInterval(function () {
+      var text = document.getElementById("buniBootText");
+      if (!text) return;
+      window.BUNI_BOOT_INDEX = (window.BUNI_BOOT_INDEX + 1) % window.BUNI_BOOT_MESSAGES.length;
+      text.textContent = window.BUNI_BOOT_MESSAGES[window.BUNI_BOOT_INDEX];
+    }, 1900);
   </script>
-  <script src="https://qa-notion-chat.onrender.com/static/chat.js?v=buni-llm-4"></script>
+  <script
+    src="https://qa-notion-chat.onrender.com/static/chat.js?v=buni-llm-4"
+    onload="window.BUNI_ASSET_READY.js=true;window.clearInterval(window.BUNI_BOOT_TIMER);window.BUNI_TRY_SHOW_CHAT();"
+    onerror="window.BUNI_BOOT_ERROR('챗봇을 불러오지 못했습니다. Render가 깨어나는 중이면 잠시 후 다시 시도해 주세요.');"
+  ></script>
 </body>
 </html>

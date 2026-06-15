@@ -179,13 +179,6 @@
       }
     }
   </style>
-  <link
-    rel="preload"
-    href="https://qa-notion-chat.onrender.com/static/styles.css?v=buni-1"
-    as="style"
-    onload="this.onload=null;this.rel='stylesheet';window.BUNI_ASSET_READY=window.BUNI_ASSET_READY||{};window.BUNI_ASSET_READY.css=true;if(window.BUNI_TRY_SHOW_CHAT)window.BUNI_TRY_SHOW_CHAT();"
-    onerror="window.BUNI_BOOT_PENDING_ERROR='스타일을 불러오지 못했습니다. 잠시 후 새로고침해 주세요.';if(window.BUNI_BOOT_ERROR)window.BUNI_BOOT_ERROR(window.BUNI_BOOT_PENDING_ERROR);"
-  />
   <noscript>
     <link rel="stylesheet" href="https://qa-notion-chat.onrender.com/static/styles.css?v=buni-1" />
   </noscript>
@@ -206,7 +199,7 @@
     <header class="chat-header">
       <img
         class="hanq-avatar header-avatar"
-        src="https://qa-notion-chat.onrender.com/static/hanq.png"
+        data-src="https://qa-notion-chat.onrender.com/static/hanq.png"
         alt="Bug Fairy BUNI"
       />
       <div class="chat-title">
@@ -240,11 +233,20 @@
     window.BUNI_BOOT_INDEX = 0;
     window.HYO_CHAT_API_BASE = "https://qa-notion-chat.onrender.com";
     window.HYO_CHAT_ASSET_BASE = "https://qa-notion-chat.onrender.com";
+    window.BUNI_CHAT_CSS_URL = "https://qa-notion-chat.onrender.com/static/styles.css?v=buni-1";
+    window.BUNI_CHAT_JS_URL = "https://qa-notion-chat.onrender.com/static/chat.js?v=buni-llm-4";
+    window.BUNI_CHAT_ASSET_URL = "https://qa-notion-chat.onrender.com/static/hanq.png";
 
     window.BUNI_TRY_SHOW_CHAT = function () {
       if (!window.BUNI_ASSET_READY.css || !window.BUNI_ASSET_READY.js) return;
       var boot = document.getElementById("buniBoot");
       var chat = document.getElementById("chatWidget");
+      var avatars = document.querySelectorAll("[data-src]");
+      avatars.forEach(function (avatar) {
+        if (!avatar.getAttribute("src")) {
+          avatar.setAttribute("src", avatar.getAttribute("data-src"));
+        }
+      });
       if (boot) boot.hidden = true;
       if (chat) chat.hidden = false;
     };
@@ -264,11 +266,40 @@
       window.BUNI_BOOT_INDEX = (window.BUNI_BOOT_INDEX + 1) % window.BUNI_BOOT_MESSAGES.length;
       text.textContent = window.BUNI_BOOT_MESSAGES[window.BUNI_BOOT_INDEX];
     }, 1900);
+
+    window.BUNI_LOAD_CHAT_ASSETS = function () {
+      if (window.BUNI_ASSET_LOADING) return;
+      window.BUNI_ASSET_LOADING = true;
+
+      var stylesheet = document.createElement("link");
+      stylesheet.rel = "stylesheet";
+      stylesheet.href = window.BUNI_CHAT_CSS_URL;
+      stylesheet.onload = function () {
+        window.BUNI_ASSET_READY.css = true;
+        window.BUNI_TRY_SHOW_CHAT();
+      };
+      stylesheet.onerror = function () {
+        window.BUNI_BOOT_ERROR("스타일을 불러오지 못했습니다. Render가 깨어나는 중이면 잠시 후 새로고침해 주세요.");
+      };
+      document.head.appendChild(stylesheet);
+
+      var script = document.createElement("script");
+      script.src = window.BUNI_CHAT_JS_URL;
+      script.async = true;
+      script.onload = function () {
+        window.BUNI_ASSET_READY.js = true;
+        window.clearInterval(window.BUNI_BOOT_TIMER);
+        window.BUNI_TRY_SHOW_CHAT();
+      };
+      script.onerror = function () {
+        window.BUNI_BOOT_ERROR("챗봇을 불러오지 못했습니다. Render가 깨어나는 중이면 잠시 후 다시 시도해 주세요.");
+      };
+      document.body.appendChild(script);
+    };
+
+    window.addEventListener("load", function () {
+      window.setTimeout(window.BUNI_LOAD_CHAT_ASSETS, 50);
+    });
   </script>
-  <script
-    src="https://qa-notion-chat.onrender.com/static/chat.js?v=buni-llm-4"
-    onload="window.BUNI_ASSET_READY.js=true;window.clearInterval(window.BUNI_BOOT_TIMER);window.BUNI_TRY_SHOW_CHAT();"
-    onerror="window.BUNI_BOOT_ERROR('챗봇을 불러오지 못했습니다. Render가 깨어나는 중이면 잠시 후 다시 시도해 주세요.');"
-  ></script>
 </body>
 </html>

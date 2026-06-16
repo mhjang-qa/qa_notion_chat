@@ -254,6 +254,30 @@ def _bulleted(text: str) -> dict[str, Any]:
     return {"object": "block", "type": "bulleted_list_item", "bulleted_list_item": {"rich_text": _block_rich_text(text)}}
 
 
+def _callout(text: str, *, color: str = "gray_background") -> dict[str, Any]:
+    return {
+        "object": "block",
+        "type": "callout",
+        "callout": {
+            "rich_text": _block_rich_text(text),
+            "icon": {"type": "emoji", "emoji": "💬"},
+            "color": color,
+        },
+    }
+
+
+def _log_callout_color(*, origin: str, mode: str, topic: str) -> str:
+    if origin == "LLM" or mode.startswith("llm_"):
+        return "yellow_background"
+    if topic == "결함 제보":
+        return "green_background"
+    if topic in {"결함 현황", "업무/테스트 현황", "테스트 결과", "테스트 계획"}:
+        return "blue_background"
+    if topic == "일반/고정 응답":
+        return "gray_background"
+    return "default"
+
+
 def _block_plain_text(block: dict[str, Any]) -> str:
     btype = block.get("type")
     body = block.get(btype) if btype else None
@@ -301,6 +325,7 @@ def _append_daily_body(page_id: str, *, date: str, logs: list[dict[str, Any]], n
     children: list[dict[str, Any]] = [
         _paragraph(f"{DAILY_BODY_MARKER} {now.strftime('%Y-%m-%d %H:%M:%S')} KST 기준 자동 갱신"),
         _heading("질문/답변 품질 확인 목록"),
+        _paragraph("최신 질문 50건을 질문별 카드로 정리합니다. 답변 요약은 품질 확인을 위해 저장된 범위까지만 표시됩니다."),
     ]
     if not ordered_logs:
         children.append(_paragraph("아직 기록된 질문이 없습니다."))
@@ -312,14 +337,20 @@ def _append_daily_body(page_id: str, *, date: str, logs: list[dict[str, Any]], n
         topic = _property_select_name(page, "주제") or "-"
         asked_at = _property_date(page, "시각")
         ip_address = _property_ip(page) or "-"
-        children.extend(
-            [
-                _heading(f"{index}. {question}"),
-                _bulleted(f"질문: {question}"),
-                _bulleted(f"답변: {answer}"),
-                _bulleted(f"분류: {topic} / 모드: {mode} / 출처: {origin}"),
-                _bulleted(f"시각: {asked_at} / IP: {ip_address}"),
-            ]
+        color = _log_callout_color(origin=origin, mode=mode, topic=topic)
+        children.append(
+            _callout(
+                "\n".join(
+                    [
+                        f"{index}. {question}",
+                        "",
+                        f"답변: {answer}",
+                        f"분류: {topic} / 모드: {mode} / 출처: {origin}",
+                        f"시각: {asked_at} / IP: {ip_address}",
+                    ]
+                ),
+                color=color,
+            )
         )
     for start in range(0, len(children), 90):
         _request(

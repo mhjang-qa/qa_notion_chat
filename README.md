@@ -100,10 +100,12 @@ CHAT_STATS_ENABLED=true
 
 최초 실행 시 해당 페이지 하위에 아래 데이터베이스를 자동 생성합니다.
 
-- `BUNI Chat Daily Stats`: 일자별 총 인입, 고유 질문, LLM 요청, Notion 답변, 고정 응답, 결함 제보, 범위 밖 질문, 주요 주제, 최근 질문
-- `BUNI Chat Question Logs`: 질문별 원문, 일자/시각, 응답 모드, 출처, 주제, LLM 여부, 응답 요약, 질문 키
+- `BUNI Chat Daily Stats`: 일자별 총 인입, 고유 질문, LLM 요청, Notion 답변, 고정 응답, 결함 제보, 범위 밖 질문, 고유 IP, IP 목록, 주요 주제, 최근 질문
+- `BUNI Chat Question Logs`: 질문별 원문, 일자/시각, 응답 모드, 출처, 주제, LLM 여부, 응답 요약, 질문 키, IP 주소, User Agent, Referer
 
 Notion 통계 페이지가 비어 있어도 자동으로 데이터베이스를 만들지만, Notion Integration이 해당 페이지에 접근 권한을 가지고 있어야 합니다.
+
+Notion 임베드와 로그인 비활성 구조에서는 특정 사용자를 안정적으로 식별할 수 없습니다. 대신 Render 요청 헤더 기준 IP 후보(`CF-Connecting-IP`, `X-Real-IP`, `X-Forwarded-For`)와 User Agent를 질문 로그에 저장합니다.
 
 ## Slack 결함 등록 알림
 

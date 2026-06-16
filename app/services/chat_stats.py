@@ -93,6 +93,8 @@ def _create_daily_database(page_id: str) -> str:
             "고정 응답": {"number": {"format": "number"}},
             "결함 제보": {"number": {"format": "number"}},
             "범위 밖 질문": {"number": {"format": "number"}},
+            "고유 IP": {"number": {"format": "number"}},
+            "IP 목록": {"rich_text": {}},
             "주요 주제": {"rich_text": {}},
             "최근 질문": {"rich_text": {}},
             "마지막 업데이트": {"date": {}},
@@ -115,9 +117,22 @@ def _create_log_database(page_id: str) -> str:
             "LLM 여부": {"checkbox": {}},
             "응답 요약": {"rich_text": {}},
             "질문 키": {"rich_text": {}},
+            "IP 주소": {"rich_text": {}},
+            "User Agent": {"rich_text": {}},
+            "Referer": {"rich_text": {}},
         },
     }
     return normalize_notion_id(_request("POST", "/databases", payload=payload).get("id") or "")
+
+
+def _ensure_database_properties(database_id: str, required: dict[str, Any]) -> None:
+    database = _request("GET", f"/databases/{normalize_notion_id(database_id)}")
+    existing = database.get("properties") or {}
+    if not isinstance(existing, dict):
+        existing = {}
+    missing = {name: schema for name, schema in required.items() if name not in existing}
+    if missing:
+        _request("PATCH", f"/databases/{normalize_notion_id(database_id)}", payload={"properties": missing})
 
 
 def _ensure_databases() -> tuple[str, str]:
@@ -130,6 +145,23 @@ def _ensure_databases() -> tuple[str, str]:
         log_id = _database_cache.get("log") or _find_child_database(config.CHAT_STATS_PAGE_ID, LOG_DB_TITLE)
         if not log_id:
             log_id = _create_log_database(config.CHAT_STATS_PAGE_ID)
+        if _database_cache.get("schema_checked") != f"{daily_id}:{log_id}":
+            _ensure_database_properties(
+                daily_id,
+                {
+                    "고유 IP": {"number": {"format": "number"}},
+                    "IP 목록": {"rich_text": {}},
+                },
+            )
+            _ensure_database_properties(
+                log_id,
+                {
+                    "IP 주소": {"rich_text": {}},
+                    "User Agent": {"rich_text": {}},
+                    "Referer": {"rich_text": {}},
+                },
+            )
+            _database_cache["schema_checked"] = f"{daily_id}:{log_id}"
         _database_cache["daily"] = daily_id
         _database_cache["log"] = log_id
         return daily_id, log_id
@@ -144,7 +176,7 @@ def _classify_topic(question: str, answer: dict[str, Any]) -> str:
     compact = re.sub(r"\s+", "", text)
     if "bug_report" in text or any(token in compact for token in ("결함제보", "버그제보", "이슈제보")):
         return "결함 제보"
-    if any(token in compact for token in ("결함현황", "결함개수", "이슈현황", "버그현황")):
+    if any(token in compact for token in ("결함현황", "결함개수", "결함검색", "이슈현황", "버그현황", "결함카운트")):
         return "결함 현황"
     if any(token in compact for token in ("진행중", "현재진행", "업무현황", "테스트항목")):
         return "업무/테스트 현황"
@@ -161,12 +193,23 @@ def _classify_topic(question: str, answer: dict[str, Any]) -> str:
     return "기타"
 
 
-def _create_log_page(log_db_id: str, *, question: str, answer: dict[str, Any], now: datetime) -> None:
+def _create_log_page(
+    log_db_id: str,
+    *,
+    question: str,
+    answer: dict[str, Any],
+    now: datetime,
+    request_meta: dict[str, str] | None = None,
+) -> None:
     date = _date_key(now)
     mode = str(answer.get("mode") or "unknown")
     origin = str(answer.get("origin") or "UNKNOWN")
     topic = _classify_topic(question, answer)
     answer_preview = str(answer.get("answer") or "").strip().replace("\n", " ")[:500]
+    request_meta = request_meta or {}
+    ip_address = str(request_meta.get("ip") or "").strip()
+    user_agent = str(request_meta.get("user_agent") or "").strip()
+    referer = str(request_meta.get("referer") or "").strip()
     payload = {
         "parent": {"database_id": normalize_notion_id(log_db_id)},
         "properties": {
@@ -179,6 +222,9 @@ def _create_log_page(log_db_id: str, *, question: str, answer: dict[str, Any], n
             "LLM 여부": {"checkbox": origin == "LLM" or mode.startswith("llm_")},
             "응답 요약": {"rich_text": _rich_text(answer_preview, limit=500)},
             "질문 키": {"rich_text": _rich_text(_normalize_question(question), limit=500)},
+            "IP 주소": {"rich_text": _rich_text(ip_address, limit=200)},
+            "User Agent": {"rich_text": _rich_text(user_agent, limit=500)},
+            "Referer": {"rich_text": _rich_text(referer, limit=500)},
         },
     }
     _request("POST", "/pages", payload=payload)
@@ -220,6 +266,10 @@ def _property_title(page: dict[str, Any], name: str) -> str:
     return _plain_text(prop.get("title"))
 
 
+def _property_ip(page: dict[str, Any]) -> str:
+    return _property_rich_text(page, "IP 주소")
+
+
 def _find_daily_page(daily_db_id: str, date: str) -> str:
     payload = {"page_size": 1, "filter": {"property": "날짜", "date": {"equals": date}}}
     data = _request("POST", f"/databases/{normalize_notion_id(daily_db_id)}/query", payload=payload)
@@ -236,6 +286,7 @@ def _upsert_daily_page(daily_db_id: str, *, date: str, logs: list[dict[str, Any]
     mode_counter = Counter(_property_select_name(page, "모드") for page in logs)
     origin_counter = Counter(_property_select_name(page, "출처") for page in logs)
     topic_counter = Counter(_property_select_name(page, "주제") for page in logs)
+    ip_values = sorted({ip for ip in (_property_ip(page) for page in logs) if ip})
     llm_count = sum(
         1
         for page in logs
@@ -254,6 +305,8 @@ def _upsert_daily_page(daily_db_id: str, *, date: str, logs: list[dict[str, Any]
         "고정 응답": {"number": origin_counter["SYSTEM"]},
         "결함 제보": {"number": topic_counter["결함 제보"]},
         "범위 밖 질문": {"number": mode_counter["out_of_scope"]},
+        "고유 IP": {"number": len(ip_values)},
+        "IP 목록": {"rich_text": _rich_text(", ".join(ip_values), limit=1000)},
         "주요 주제": {"rich_text": _rich_text(topic_summary or "질문 없음")},
         "최근 질문": {"rich_text": _rich_text(" / ".join(q for q in recent_questions if q)[:1000])},
         "마지막 업데이트": {"date": {"start": now.isoformat()}},
@@ -266,7 +319,12 @@ def _upsert_daily_page(daily_db_id: str, *, date: str, logs: list[dict[str, Any]
     _request("POST", "/pages", payload={"parent": {"database_id": normalize_notion_id(daily_db_id)}, "properties": properties})
 
 
-def record_chat_interaction(question: str, answer: dict[str, Any]) -> None:
+def record_chat_interaction(
+    question: str,
+    answer: dict[str, Any],
+    *,
+    request_meta: dict[str, str] | None = None,
+) -> None:
     if not config.CHAT_STATS_ENABLED or not config.CHAT_STATS_PAGE_ID:
         return
     clean_question = (question or "").strip()
@@ -276,15 +334,25 @@ def record_chat_interaction(question: str, answer: dict[str, Any]) -> None:
         now = _now()
         date = _date_key(now)
         daily_db_id, log_db_id = _ensure_databases()
-        _create_log_page(log_db_id, question=clean_question, answer=answer, now=now)
+        _create_log_page(log_db_id, question=clean_question, answer=answer, now=now, request_meta=request_meta)
         logs = _query_logs_for_date(log_db_id, date)
         _upsert_daily_page(daily_db_id, date=date, logs=logs, now=now)
     except Exception as exc:
         logger.warning("[CHAT_STATS] Notion stats update failed: %s", exc)
 
 
-def record_chat_interaction_async(question: str, answer: dict[str, Any]) -> None:
+def record_chat_interaction_async(
+    question: str,
+    answer: dict[str, Any],
+    *,
+    request_meta: dict[str, str] | None = None,
+) -> None:
     if not config.CHAT_STATS_ENABLED:
         return
-    thread = threading.Thread(target=record_chat_interaction, args=(question, answer), daemon=True)
+    thread = threading.Thread(
+        target=record_chat_interaction,
+        args=(question, answer),
+        kwargs={"request_meta": request_meta},
+        daemon=True,
+    )
     thread.start()

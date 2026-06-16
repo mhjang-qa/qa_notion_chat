@@ -114,7 +114,7 @@ def _fixed_response(question: str) -> dict | None:
         }
 
     if _DEFECT_STATUS_RE.search(raw):
-        return _defect_status_summary()
+        return _defect_status_summary(raw)
 
     if _PENDING_WORK_RE.search(raw):
         progress = _work_status_summary("pending")
@@ -631,6 +631,42 @@ def _defect_status_text(page: dict) -> str:
     return _defect_prop_text(props.get("상태"))
 
 
+def _defect_severity_text(page: dict) -> str:
+    props = page.get("properties") or {}
+    if not isinstance(props, dict):
+        return ""
+    for name in ("심각도", "Severity", "severity", "결함 심각도", "중요도", "우선순위", "Priority"):
+        value = _defect_prop_text(props.get(name))
+        if value:
+            return value
+    text = str(page.get("text") or "")
+    return _line_value(text, ("심각도", "Severity", "severity", "결함 심각도", "중요도", "우선순위", "Priority"))
+
+
+def _defect_severity_rank(severity: str) -> int | None:
+    lowered = (severity or "").lower()
+    if "critical" in lowered or "blocker" in lowered or "치명" in lowered or "긴급" in lowered:
+        return 0
+    if "major" in lowered or "높음" in lowered or "상" == lowered.strip():
+        return 1
+    if "minor" in lowered or "보통" in lowered or "중" == lowered.strip():
+        return 2
+    if "trivial" in lowered or "low" in lowered or "낮음" in lowered or "하" == lowered.strip():
+        return 3
+    return None
+
+
+def _defect_severity_filter(question: str) -> tuple[int, str] | None:
+    compact = re.sub(r"\s+", "", question or "").lower()
+    if any(token in compact for token in ("critical이상", "critical전체", "critical카운트", "critical결함", "치명이상", "긴급이상")):
+        return 0, "Critical 이상"
+    if any(token in compact for token in ("major이상", "major전체", "major카운트", "major결함", "상위이상", "높음이상")):
+        return 1, "Major 이상"
+    if any(token in compact for token in ("minor이상", "minor전체", "minor카운트", "minor결함", "보통이상")):
+        return 2, "Minor 이상"
+    return None
+
+
 def _defect_database_id(page: dict[str, Any]) -> str:
     parent = page.get("parent") or {}
     if not isinstance(parent, dict):
@@ -810,8 +846,16 @@ def _work_status_summary(status_group: str) -> dict | None:
     }
 
 
-def _defect_status_summary() -> dict:
+def _defect_status_summary(question: str = "") -> dict:
     pages = _defect_summary_pages()
+    severity_filter = _defect_severity_filter(question)
+    if severity_filter is not None:
+        max_rank, _label = severity_filter
+        pages = [
+            page
+            for page in pages
+            if (rank := _defect_severity_rank(_defect_severity_text(page))) is not None and rank <= max_rank
+        ]
     groups = {
         "전체": Counter(),
         "한패스": Counter(),
@@ -833,9 +877,12 @@ def _defect_status_summary() -> dict:
         return f"- {label} 결함 개수: {total}건 / 완료 {done}건 / 진행중 {active}건 / 추후 수정 {later}건"
 
     notion_url = "https://www.notion.so/21473fbd19518019823fcaa7ef5d6761?source=copy_link"
+    title = "현재까지 등록된 결함 개수 요약입니다."
+    if severity_filter is not None:
+        title = f"현재까지 등록된 {severity_filter[1]} 결함 개수 요약입니다."
 
     answer = (
-        "현재까지 등록된 결함 개수 요약입니다.\n\n"
+        f"{title}\n\n"
         f"{line('전체', groups['전체'])}\n"
         f"{line('한패스', groups['한패스'])}\n"
         f"{line('GoHanpass', groups['GoHanpass'])}\n\n"

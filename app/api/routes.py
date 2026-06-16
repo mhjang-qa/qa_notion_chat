@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 
-from fastapi import APIRouter, File, HTTPException, UploadFile
+from fastapi import APIRouter, File, HTTPException, Request, UploadFile
 from pydantic import BaseModel
 
 from app.services.answerer import answer_question
@@ -32,13 +32,24 @@ class BugReportRequest(BaseModel):
 
 
 @router.post("/chat")
-def chat(req: ChatRequest):
+def chat(req: ChatRequest, request: Request):
     question = (req.question or "").strip()
     if not question:
         return {"answer": "질문을 입력해 주세요.", "sources": [], "origin": "SYSTEM", "mode": "empty"}
+    forwarded_for = request.headers.get("x-forwarded-for", "")
+    request_meta = {
+        "ip": (
+            request.headers.get("cf-connecting-ip")
+            or request.headers.get("x-real-ip")
+            or (forwarded_for.split(",")[0].strip() if forwarded_for else "")
+            or (request.client.host if request.client else "")
+        ),
+        "user_agent": request.headers.get("user-agent", ""),
+        "referer": request.headers.get("referer", ""),
+    }
     try:
         answer = answer_question(question, allow_llm=req.allow_llm)
-        record_chat_interaction_async(question, answer)
+        record_chat_interaction_async(question, answer, request_meta=request_meta)
         return answer
     except Exception as exc:
         logger.exception("[CHAT] answer generation failed: %s", exc)
@@ -49,7 +60,7 @@ def chat(req: ChatRequest):
             "origin": "SYSTEM",
             "mode": "server_error",
         }
-        record_chat_interaction_async(question, answer)
+        record_chat_interaction_async(question, answer, request_meta=request_meta)
         return answer
 
 

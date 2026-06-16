@@ -32,6 +32,13 @@ _CASUAL_CHAT_RE = re.compile(
     r"(잡담|심심|놀아줘|농담|기분\s*어때|점심|저녁|뭐\s*먹|누구를\s*닮|누구\s*닮)",
     re.IGNORECASE,
 )
+_BUNI_META_RE = re.compile(
+    r"(너|널|너를|넌|너는|버니|buni|버그요정|챗봇|봇).*(만든|만들|생성|제작|개발|관리|운영|담당).*(사람|팀|누구|어디)|"
+    r"(너|널|너를|넌|너는|버니|buni|버그요정|챗봇|봇).*(누가|누구가|어디서|어느\s*팀).*(만든|만들|생성|제작|개발|관리|운영)|"
+    r"(누가|누구가|어디서|어느\s*팀).*(너|널|너를|버니|buni|버그요정|챗봇|봇).*(만든|만들|생성|제작|개발|관리|운영)|"
+    r"(제작자|개발자|관리자|운영자|담당자).*(누구|어디|팀)",
+    re.IGNORECASE,
+)
 _OUT_OF_SCOPE_RE = re.compile(
     r"(날씨|기온|비\s*와|눈\s*와|미세먼지|뉴스|주가|환율|맛집|영화|운세|로또|실시간)",
     re.IGNORECASE,
@@ -123,6 +130,9 @@ def _fixed_response(question: str) -> dict | None:
         progress = _work_status_summary("active")
         if progress is not None:
             return progress
+
+    if _BUNI_META_RE.search(raw):
+        return _buni_meta_response()
 
     if _CASUAL_CHAT_RE.search(raw):
         return _casual_chat_response(raw)
@@ -217,6 +227,16 @@ def _fixed_response(question: str) -> dict | None:
         }
 
     return None
+
+
+def _buni_meta_response() -> dict:
+    return {
+        "answer": "저는 QA팀에서 생성하고 관리하는 버그요정 버니(BUNI)입니다.",
+        "sources": [],
+        "items": [],
+        "origin": "SYSTEM",
+        "mode": "buni_meta",
+    }
 
 
 def _casual_chat_response(question: str) -> dict:

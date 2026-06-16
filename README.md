@@ -64,6 +64,8 @@ STARTUP_SYNC_MAX_INDEX_AGE_HOURS=12
 SLACK_WEBHOOK_URL=...
 SLACK_CHANNEL_NAME=slice_gh-test
 SLACK_NOTIFY_ENABLED=true
+CHAT_STATS_ENABLED=true
+CHAT_STATS_PAGE_ID=38173fbd195180a8a0f1d7bffbc221da
 ```
 
 Render 무료 인스턴스는 파일시스템이 휘발성이므로 런타임에 생성한 인덱스가 재시작/스핀다운 후 사라질 수 있습니다. `STARTUP_SYNC_PRIORITY=true`를 켜면 서버 시작 시 우선 검색 인덱스를 백그라운드로 자동 동기화합니다.
@@ -84,6 +86,24 @@ USE_GEMINI=true
 ```
 
 `GEMINI_API_KEY`가 있으면 Gemini CLI 없이 API로 동작합니다. API Key가 없고 `USE_GEMINI=true`인 경우 기존 `GEMINI_CLI_BIN` 경로를 사용합니다.
+
+## 챗봇 이용 통계
+
+`/api/chat`으로 질문이 들어오면 응답 직후 비동기로 Notion 통계 페이지에 데이터를 적재합니다. 통계 적재가 실패해도 사용자 답변은 실패하지 않습니다.
+
+기본 통계 페이지:
+
+```bash
+CHAT_STATS_PAGE_ID=38173fbd195180a8a0f1d7bffbc221da
+CHAT_STATS_ENABLED=true
+```
+
+최초 실행 시 해당 페이지 하위에 아래 데이터베이스를 자동 생성합니다.
+
+- `BUNI Chat Daily Stats`: 일자별 총 인입, 고유 질문, LLM 요청, Notion 답변, 고정 응답, 결함 제보, 범위 밖 질문, 주요 주제, 최근 질문
+- `BUNI Chat Question Logs`: 질문별 원문, 일자/시각, 응답 모드, 출처, 주제, LLM 여부, 응답 요약, 질문 키
+
+Notion 통계 페이지가 비어 있어도 자동으로 데이터베이스를 만들지만, Notion Integration이 해당 페이지에 접근 권한을 가지고 있어야 합니다.
 
 ## Slack 결함 등록 알림
 

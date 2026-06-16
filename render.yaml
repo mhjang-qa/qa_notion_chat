@@ -25,6 +25,10 @@ services:
         value: "slice_gh-test"
       - key: SLACK_NOTIFY_ENABLED
         value: "true"
+      - key: CHAT_STATS_ENABLED
+        value: "true"
+      - key: CHAT_STATS_PAGE_ID
+        value: "38173fbd195180a8a0f1d7bffbc221da"
       - key: NOTION_TOKEN
         sync: false
       - key: GEMINI_API_KEY

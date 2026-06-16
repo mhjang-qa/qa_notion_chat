@@ -107,6 +107,8 @@ Notion 통계 페이지가 비어 있어도 자동으로 데이터베이스를 �
 
 Notion 임베드와 로그인 비활성 구조에서는 특정 사용자를 안정적으로 식별할 수 없습니다. 대신 Render 요청 헤더 기준 IP 후보(`CF-Connecting-IP`, `X-Real-IP`, `X-Forwarded-For`)와 User Agent를 질문 로그에 저장합니다.
 
+일자별 통계 페이지 본문에는 답변 품질 확인을 위해 당일 질문/답변 목록을 자동으로 작성합니다. 자동 작성 영역은 `[BUNI_STATS_BODY]` 마커 이후를 매번 갱신하므로, 수동 메모는 마커 위쪽에 작성하세요.
+
 ## Slack 결함 등록 알림
 
 챗봇에서 결함 제보가 Notion DB에 정상 등록되면 Slack Incoming Webhook으로 `#slice_gh-test` 채널에 Block Kit 알림을 보냅니다. Notion 등록이 실패하거나 Validation Error/Notion API Error가 발생하면 Slack은 호출하지 않습니다. Slack 전송이 실패해도 Notion 등록 성공 상태는 유지됩니다.

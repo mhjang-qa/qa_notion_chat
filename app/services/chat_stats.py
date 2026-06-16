@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 KST = ZoneInfo("Asia/Seoul")
 DAILY_DB_TITLE = "BUNI Chat Daily Stats"
 LOG_DB_TITLE = "BUNI Chat Question Logs"
+DAILY_BODY_MARKER = "[BUNI_STATS_BODY]"
 
 _database_cache: dict[str, str] = {}
 _cache_lock = threading.Lock()
@@ -47,6 +48,13 @@ def _plain_text(rich_text: Any) -> str:
     if not isinstance(rich_text, list):
         return ""
     return "".join(str(item.get("plain_text") or "") for item in rich_text if isinstance(item, dict)).strip()
+
+
+def _truncate(text: str, limit: int) -> str:
+    clean = (text or "").strip()
+    if len(clean) <= limit:
+        return clean
+    return f"{clean[: max(limit - 3, 0)]}..."
 
 
 def _database_title(database: dict[str, Any]) -> str:
@@ -230,6 +238,97 @@ def _create_log_page(
     _request("POST", "/pages", payload=payload)
 
 
+def _block_rich_text(text: str, limit: int = 1900) -> list[dict[str, Any]]:
+    return _rich_text(_truncate(text, limit), limit=limit)
+
+
+def _paragraph(text: str) -> dict[str, Any]:
+    return {"object": "block", "type": "paragraph", "paragraph": {"rich_text": _block_rich_text(text)}}
+
+
+def _heading(text: str) -> dict[str, Any]:
+    return {"object": "block", "type": "heading_2", "heading_2": {"rich_text": _block_rich_text(text, limit=200)}}
+
+
+def _bulleted(text: str) -> dict[str, Any]:
+    return {"object": "block", "type": "bulleted_list_item", "bulleted_list_item": {"rich_text": _block_rich_text(text)}}
+
+
+def _block_plain_text(block: dict[str, Any]) -> str:
+    btype = block.get("type")
+    body = block.get(btype) if btype else None
+    if not isinstance(body, dict):
+        return ""
+    return _plain_text(body.get("rich_text"))
+
+
+def _iter_block_children(block_id: str) -> list[dict[str, Any]]:
+    out: list[dict[str, Any]] = []
+    cursor = None
+    while True:
+        query = "?page_size=100"
+        if cursor:
+            query += f"&start_cursor={cursor}"
+        data = _request("GET", f"/blocks/{normalize_notion_id(block_id)}/children{query}")
+        out.extend([block for block in data.get("results") or [] if isinstance(block, dict)])
+        if not data.get("has_more"):
+            return out
+        cursor = data.get("next_cursor")
+        if not cursor:
+            return out
+
+
+def _delete_existing_daily_body(page_id: str) -> None:
+    deleting = False
+    for block in _iter_block_children(page_id):
+        if DAILY_BODY_MARKER in _block_plain_text(block):
+            deleting = True
+        if deleting:
+            _request("DELETE", f"/blocks/{normalize_notion_id(block.get('id') or '')}")
+
+
+def _property_date(page: dict[str, Any], name: str) -> str:
+    prop = (page.get("properties") or {}).get(name) or {}
+    value = prop.get("date") or {}
+    if not isinstance(value, dict):
+        return ""
+    return str(value.get("start") or "")
+
+
+def _append_daily_body(page_id: str, *, date: str, logs: list[dict[str, Any]], now: datetime) -> None:
+    _delete_existing_daily_body(page_id)
+    ordered_logs = sorted(logs, key=lambda page: _property_date(page, "시각"), reverse=True)
+    children: list[dict[str, Any]] = [
+        _paragraph(f"{DAILY_BODY_MARKER} {now.strftime('%Y-%m-%d %H:%M:%S')} KST 기준 자동 갱신"),
+        _heading("질문/답변 품질 확인 목록"),
+    ]
+    if not ordered_logs:
+        children.append(_paragraph("아직 기록된 질문이 없습니다."))
+    for index, page in enumerate(ordered_logs[:50], start=1):
+        question = _property_title(page, "질문") or "질문 없음"
+        answer = _property_rich_text(page, "응답 요약") or "응답 없음"
+        mode = _property_select_name(page, "모드") or "-"
+        origin = _property_select_name(page, "출처") or "-"
+        topic = _property_select_name(page, "주제") or "-"
+        asked_at = _property_date(page, "시각")
+        ip_address = _property_ip(page) or "-"
+        children.extend(
+            [
+                _heading(f"{index}. {question}"),
+                _bulleted(f"질문: {question}"),
+                _bulleted(f"답변: {answer}"),
+                _bulleted(f"분류: {topic} / 모드: {mode} / 출처: {origin}"),
+                _bulleted(f"시각: {asked_at} / IP: {ip_address}"),
+            ]
+        )
+    for start in range(0, len(children), 90):
+        _request(
+            "PATCH",
+            f"/blocks/{normalize_notion_id(page_id)}/children",
+            payload={"children": children[start : start + 90]},
+        )
+
+
 def _query_logs_for_date(log_db_id: str, date: str) -> list[dict[str, Any]]:
     payload = {
         "page_size": 100,
@@ -315,8 +414,12 @@ def _upsert_daily_page(daily_db_id: str, *, date: str, logs: list[dict[str, Any]
     page_id = _find_daily_page(daily_db_id, date)
     if page_id:
         _request("PATCH", f"/pages/{page_id}", payload={"properties": properties})
+        _append_daily_body(page_id, date=date, logs=logs, now=now)
         return
-    _request("POST", "/pages", payload={"parent": {"database_id": normalize_notion_id(daily_db_id)}, "properties": properties})
+    page = _request("POST", "/pages", payload={"parent": {"database_id": normalize_notion_id(daily_db_id)}, "properties": properties})
+    new_page_id = normalize_notion_id(page.get("id") or "")
+    if new_page_id:
+        _append_daily_body(new_page_id, date=date, logs=logs, now=now)
 
 
 def record_chat_interaction(

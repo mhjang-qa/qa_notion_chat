@@ -49,6 +49,19 @@ def _rich_text(text: str) -> dict[str, Any]:
     return {"type": "text", "text": {"content": text[:2000]}}
 
 
+def _paragraph(text: str) -> dict[str, Any]:
+    return {"object": "block", "type": "paragraph", "paragraph": {"rich_text": [_rich_text(text)] if text else []}}
+
+
+def _heading(text: str, *, level: int = 2) -> dict[str, Any]:
+    block_type = f"heading_{level}"
+    return {"object": "block", "type": block_type, block_type: {"rich_text": [_rich_text(text)]}}
+
+
+def _bulleted(text: str) -> dict[str, Any]:
+    return {"object": "block", "type": "bulleted_list_item", "bulleted_list_item": {"rich_text": [_rich_text(text)]}}
+
+
 def _valid_external_url(raw: str) -> bool:
     parsed = urlparse(raw)
     return parsed.scheme in {"http", "https"} and bool(parsed.netloc)
@@ -76,6 +89,104 @@ def _uploaded_file_objects(files: list[dict[str, str]]) -> list[dict[str, Any]]:
             continue
         out.append({"name": name[:100], "type": "file_upload", "file_upload": {"id": file_id}})
     return out
+
+
+def _attachment_name(file: dict[str, Any]) -> str:
+    name = str(file.get("name") or "").strip()
+    if name:
+        return name
+    if file.get("type") == "external":
+        url = str((file.get("external") or {}).get("url") or "").strip()
+        return url.rstrip("/").rsplit("/", 1)[-1] or "attachment"
+    return "attachment"
+
+
+def _attachment_extension(file: dict[str, Any]) -> str:
+    name = _attachment_name(file)
+    path = urlparse(name).path if "://" in name else name
+    if "." not in path:
+        return ""
+    return path.rsplit(".", 1)[-1].lower()
+
+
+def _attachment_block_type(file: dict[str, Any]) -> str:
+    ext = _attachment_extension(file)
+    if ext in {"apng", "avif", "gif", "heic", "jpeg", "jpg", "png", "svg", "tif", "tiff", "webp"}:
+        return "image"
+    if ext in {"avi", "m4v", "mov", "mp4", "mpeg", "mpg", "ogv", "webm", "wmv"}:
+        return "video"
+    return "file"
+
+
+def _attachment_source(file: dict[str, Any]) -> dict[str, Any]:
+    file_type = str(file.get("type") or "")
+    if file_type == "file_upload":
+        file_id = str((file.get("file_upload") or {}).get("id") or "").strip()
+        return {"type": "file_upload", "file_upload": {"id": file_id}}
+    if file_type == "external":
+        url = str((file.get("external") or {}).get("url") or "").strip()
+        return {"type": "external", "external": {"url": url}}
+    return {}
+
+
+def _attachment_block(file: dict[str, Any]) -> dict[str, Any] | None:
+    source = _attachment_source(file)
+    if not source:
+        return None
+    block_type = _attachment_block_type(file)
+    return {
+        "object": "block",
+        "type": block_type,
+        block_type: {
+            **source,
+            "caption": [_rich_text(_attachment_name(file))],
+        },
+    }
+
+
+def _bug_report_page_children(
+    *,
+    title: str,
+    reporter: str,
+    target_label: str,
+    platforms: list[str],
+    report_id: str,
+    description: str,
+    files: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    left_children: list[dict[str, Any]] = [
+        _heading("제보 내용", level=3),
+        _paragraph(description),
+    ]
+    media_blocks = [block for file in files if (block := _attachment_block(file))]
+    if media_blocks:
+        left_children.append(_heading("첨부 자료", level=3))
+        left_children.extend(media_blocks)
+    else:
+        left_children.append(_paragraph("첨부 자료 없음"))
+
+    right_children: list[dict[str, Any]] = [
+        _heading("제보 정보", level=3),
+        _bulleted(f"제보 ID: {report_id}"),
+        _bulleted(f"서비스: {target_label}"),
+        _bulleted(f"플랫폼: {', '.join(platforms)}"),
+        _bulleted(f"제보자: {reporter}"),
+        _bulleted(f"첨부파일: {len(files)}개"),
+    ]
+
+    return [
+        _heading(title, level=2),
+        {
+            "object": "block",
+            "type": "column_list",
+            "column_list": {
+                "children": [
+                    {"object": "block", "type": "column", "column": {"children": left_children}},
+                    {"object": "block", "type": "column", "column": {"children": right_children}},
+                ]
+            },
+        },
+    ]
 
 
 def _upload_headers(*, json_content: bool = True) -> dict[str, str]:
@@ -292,18 +403,15 @@ def create_bug_report(
     payload = {
         "parent": {"database_id": normalize_notion_id(target.database_id)},
         "properties": properties,
-        "children": [
-            {
-                "object": "block",
-                "type": "heading_2",
-                "heading_2": {"rich_text": [_rich_text(clean_title)]},
-            },
-            {
-                "object": "block",
-                "type": "paragraph",
-                "paragraph": {"rich_text": [_rich_text(f"제보자: {clean_reporter}\n\n{clean_description}")]},
-            },
-        ],
+        "children": _bug_report_page_children(
+            title=clean_title,
+            reporter=clean_reporter,
+            target_label=target.label,
+            platforms=selected_platforms,
+            report_id=report_id,
+            description=clean_description,
+            files=files,
+        ),
     }
 
     try:

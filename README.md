@@ -89,7 +89,7 @@ USE_GEMINI=true
 
 ## 챗봇 이용 통계
 
-`/api/chat`으로 질문이 들어오면 응답 직후 비동기로 Notion 통계 페이지에 데이터를 적재합니다. 통계 적재가 실패해도 사용자 답변은 실패하지 않습니다.
+`/api/chat`으로 질문이 들어오거나 `/api/bug-report`에서 결함 등록이 완료되면 비동기로 Notion 통계 페이지에 데이터를 적재합니다. 통계 적재가 실패해도 사용자 답변이나 결함 등록 결과는 실패하지 않습니다.
 
 기본 통계 페이지:
 
@@ -100,7 +100,7 @@ CHAT_STATS_ENABLED=true
 
 최초 실행 시 해당 페이지 하위에 아래 데이터베이스를 자동 생성합니다.
 
-- `BUNI Chat Daily Stats`: 일자별 총 인입, 고유 질문, LLM 요청, Notion 답변, 고정 응답, 결함 제보, 범위 밖 질문, 고유 IP, IP 목록, 주요 주제, 최근 질문
+- `BUNI Chat Daily Stats`: 일자별 총 인입, 고유 질문, LLM 요청, Notion 답변, 고정 응답, 결함 등록 완료 건수, 범위 밖 질문, 고유 IP, IP 목록, 주요 주제, 최근 질문
 - `BUNI Chat Question Logs`: 질문별 원문, 일자/시각, 응답 모드, 출처, 주제, LLM 여부, 응답 요약, 질문 키, IP 주소, User Agent, Referer
 
 Notion 통계 페이지가 비어 있어도 자동으로 데이터베이스를 만들지만, Notion Integration이 해당 페이지에 접근 권한을 가지고 있어야 합니다.

@@ -31,13 +31,9 @@ class BugReportRequest(BaseModel):
     uploaded_files: list[dict[str, str]] = []
 
 
-@router.post("/chat")
-def chat(req: ChatRequest, request: Request):
-    question = (req.question or "").strip()
-    if not question:
-        return {"answer": "질문을 입력해 주세요.", "sources": [], "origin": "SYSTEM", "mode": "empty"}
+def _request_meta(request: Request) -> dict[str, str]:
     forwarded_for = request.headers.get("x-forwarded-for", "")
-    request_meta = {
+    return {
         "ip": (
             request.headers.get("cf-connecting-ip")
             or request.headers.get("x-real-ip")
@@ -47,6 +43,14 @@ def chat(req: ChatRequest, request: Request):
         "user_agent": request.headers.get("user-agent", ""),
         "referer": request.headers.get("referer", ""),
     }
+
+
+@router.post("/chat")
+def chat(req: ChatRequest, request: Request):
+    question = (req.question or "").strip()
+    if not question:
+        return {"answer": "질문을 입력해 주세요.", "sources": [], "origin": "SYSTEM", "mode": "empty"}
+    request_meta = _request_meta(request)
     try:
         answer = answer_question(question, allow_llm=req.allow_llm)
         record_chat_interaction_async(question, answer, request_meta=request_meta)
@@ -70,9 +74,9 @@ def bug_report_options():
 
 
 @router.post("/bug-report")
-def bug_report(req: BugReportRequest):
+def bug_report(req: BugReportRequest, request: Request):
     try:
-        return create_bug_report(
+        result = create_bug_report(
             target_key=req.target_key,
             reporter_name=req.reporter_name,
             title=req.title,
@@ -81,6 +85,24 @@ def bug_report(req: BugReportRequest):
             attachment_urls=req.attachment_urls,
             uploaded_files=req.uploaded_files,
         )
+        record_chat_interaction_async(
+            f"[결함 등록 완료] {result.get('report_id', '')} {req.title}".strip(),
+            {
+                "answer": (
+                    f"{result.get('target', '')} 결함 제보가 등록되었습니다. "
+                    f"제보 ID: {result.get('report_id', '')} / "
+                    f"플랫폼: {', '.join(result.get('platforms') or [])} / "
+                    f"첨부파일: {result.get('attachments', 0)}개 / "
+                    f"Notion: {result.get('url', '')}"
+                ),
+                "sources": [{"title": "등록된 결함", "url": result.get("url", "")}],
+                "items": [],
+                "origin": "NOTION",
+                "mode": "bug_report_created",
+            },
+            request_meta=_request_meta(request),
+        )
+        return result
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except NotionSyncError as exc:

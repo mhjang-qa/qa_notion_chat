@@ -433,7 +433,7 @@ def _upsert_daily_page(daily_db_id: str, *, date: str, logs: list[dict[str, Any]
         "LLM 요청": {"number": llm_count},
         "Notion 답변": {"number": origin_counter["NOTION"]},
         "고정 응답": {"number": origin_counter["SYSTEM"]},
-        "결함 제보": {"number": topic_counter["결함 제보"]},
+        "결함 제보": {"number": mode_counter["bug_report_created"]},
         "범위 밖 질문": {"number": mode_counter["out_of_scope"]},
         "고유 IP": {"number": len(ip_values)},
         "IP 목록": {"rich_text": _rich_text(", ".join(ip_values), limit=1000)},

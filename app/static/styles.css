@@ -154,6 +154,18 @@ h1 {
   white-space: nowrap;
 }
 
+#btnLanguage,
+#btnSync {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 108px;
+  width: 108px;
+  height: 44px;
+  font-size: 14px;
+  line-height: 1;
+}
+
 .header-actions a {
   border-color: var(--line);
   background: var(--panel);
@@ -576,5 +588,11 @@ h1 {
   }
   .answer-body {
     white-space: pre-wrap;
+  }
+}
+
+@media (max-width: 520px) {
+  .header-actions {
+    max-width: 108px;
   }
 }

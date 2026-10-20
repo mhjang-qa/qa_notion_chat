@@ -182,10 +182,10 @@
   <noscript>
     <link rel="stylesheet" href="https://qa-notion-chat.onrender.com/static/styles.css?v=buni-buttons-2" />
   </noscript>
-  <script src="./i18n.js?v=1"></script>
+  <script src="./i18n.js?v=2"></script>
 </head>
 <body>
-  <div id="buniBoot" class="buni-boot" role="status" aria-live="polite">
+  <div id="buniBoot" class="buni-boot" role="status" aria-live="polite" lang="ko" data-preserve>
     <div class="buni-boot-card">
       <div class="buni-mark" aria-hidden="true">B</div>
       <h1>버니가 준비 중입니다</h1>
@@ -232,6 +232,7 @@
       "결함 제보함을 준비하고 있습니다."
     ];
     window.BUNI_BOOT_INDEX = 0;
+    window.BUNI_BOOT_LANGUAGE = "ko";
     window.HYO_CHAT_API_BASE = "https://qa-notion-chat.onrender.com";
     window.HYO_CHAT_ASSET_BASE = "https://qa-notion-chat.onrender.com";
     window.BUNI_CHAT_CSS_URL = "https://qa-notion-chat.onrender.com/static/styles.css?v=buni-buttons-2";
@@ -250,22 +251,34 @@
       });
       if (boot) boot.hidden = true;
       if (chat) chat.hidden = false;
+      window.clearInterval(window.BUNI_BOOT_TIMER);
+    };
+
+    window.BUNI_RENDER_BOOT = function () {
+      var boot = document.getElementById("buniBoot");
+      if (!boot) return;
+      var language = window.BUNI_BOOT_LANGUAGE;
+      boot.lang = language;
+      boot.querySelector("h1").textContent = window.BuniI18n.translate("버니가 준비 중입니다", language);
+      boot.querySelector(".buni-hint").textContent = window.BuniI18n.translate("초기 접속은 조금 더 걸릴 수 있습니다", language);
+      document.getElementById("buniBootText").textContent = window.BuniI18n.translate(
+        window.BUNI_BOOT_PENDING_ERROR || window.BUNI_BOOT_MESSAGES[window.BUNI_BOOT_INDEX], language
+      );
     };
 
     window.BUNI_BOOT_ERROR = function (message) {
-      var text = document.getElementById("buniBootText");
-      if (text) text.textContent = window.BuniI18n.translate(message || "버니를 불러오지 못했습니다. 잠시 후 새로고침해 주세요.");
+      window.BUNI_BOOT_PENDING_ERROR = message || "버니를 불러오지 못했습니다. 잠시 후 새로고침해 주세요.";
+      window.BUNI_RENDER_BOOT();
     };
 
-    if (window.BUNI_BOOT_PENDING_ERROR) {
-      window.BUNI_BOOT_ERROR(window.BUNI_BOOT_PENDING_ERROR);
-    }
+    window.BUNI_RENDER_BOOT();
 
     window.BUNI_BOOT_TIMER = window.setInterval(function () {
-      var text = document.getElementById("buniBootText");
-      if (!text) return;
-      window.BUNI_BOOT_INDEX = (window.BUNI_BOOT_INDEX + 1) % window.BUNI_BOOT_MESSAGES.length;
-      text.textContent = window.BuniI18n.translate(window.BUNI_BOOT_MESSAGES[window.BUNI_BOOT_INDEX]);
+      window.BUNI_BOOT_LANGUAGE = window.BUNI_BOOT_LANGUAGE === "ko" ? "en" : "ko";
+      if (window.BUNI_BOOT_LANGUAGE === "ko") {
+        window.BUNI_BOOT_INDEX = (window.BUNI_BOOT_INDEX + 1) % window.BUNI_BOOT_MESSAGES.length;
+      }
+      window.BUNI_RENDER_BOOT();
     }, 1900);
 
     window.BUNI_LOAD_CHAT_ASSETS = function () {
@@ -289,7 +302,6 @@
       script.async = true;
       script.onload = function () {
         window.BUNI_ASSET_READY.js = true;
-        window.clearInterval(window.BUNI_BOOT_TIMER);
         window.BUNI_TRY_SHOW_CHAT();
       };
       script.onerror = function () {

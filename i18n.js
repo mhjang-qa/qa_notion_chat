@@ -106,7 +106,7 @@
     if (value.includes("\n")) return value.split("\n").map(line => translateFor(line, target)).join("\n");
     return value;
   }
-  function translate(value) { return translateFor(value, language); }
+  function translate(value, target = language) { return translateFor(value, target); }
   function apply() {
     document.documentElement.lang = language;
     document.title = language === "en" ? (dictionary[originalTitle] || originalTitle) : originalTitle;

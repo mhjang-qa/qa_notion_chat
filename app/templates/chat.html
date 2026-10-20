@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Bug Fairy BUNI</title>
-  <link rel="stylesheet" href="/static/styles.css?v=buni-buttons-2">
-  <script src="/i18n.js?v=1"></script>
+  <link rel="stylesheet" href="/static/styles.css?v=buni-buttons-3">
+  <script src="/i18n.js?v=3"></script>
 </head>
 <body>
   <section class="chat-widget" aria-label="QA Chatbot">
@@ -17,12 +17,15 @@
         <small>QA팀과 함께 결함 제보, 테스트 현황, 운영 모니터링을 도와드립니다.</small>
         <span id="syncStatus">준비 중</span>
       </div>
-      <div class="header-actions">
-        <button id="btnLanguage" type="button" aria-label="영어로 변경">🌐 English</button>
-        <button id="btnSync" type="button">동기화</button>
-        {% if auth_required %}
-        <a href="/logout">로그아웃</a>
-        {% endif %}
+      <div class="header-controls">
+        <div class="header-actions">
+          <button id="btnLanguage" type="button" aria-label="영어로 변경">🌐 English</button>
+          <button id="btnSync" type="button">동기화</button>
+          {% if auth_required %}
+          <a href="/logout">로그아웃</a>
+          {% endif %}
+        </div>
+        <a class="coachmark-link" data-coachmark-link href="./bug_report_guide.html?lang=ko" target="_blank" rel="noopener noreferrer">코치마크 바로가기 ↗</a>
       </div>
     </header>
     <main id="messages" class="messages"></main>

@@ -8,6 +8,7 @@
   "동기화": "Sync",
   "전송": "Send",
   "로그아웃": "Log out",
+  "코치마크 바로가기 ↗": "Open guided tour ↗",
   "질문을 입력하세요.": "Enter your question.",
   "버니가 준비 중입니다": "BUNI is getting ready",
   "버니가 노션에서 깨어나는 중입니다.": "BUNI is waking up in Notion.",
@@ -125,6 +126,11 @@
       entry.last = next;
     }
     document.querySelectorAll("[placeholder]").forEach(el => el.placeholder = translate(el.placeholder));
+    document.querySelectorAll("[data-coachmark-link]").forEach(el => {
+      const url = new URL(el.href, location.href);
+      url.searchParams.set("lang", language);
+      el.href = url.href;
+    });
     const button = document.getElementById("btnLanguage");
     if (button) {
       button.textContent = language === "en" ? "🌐 한국어" : "🌐 English";

@@ -180,9 +180,9 @@
     }
   </style>
   <noscript>
-    <link rel="stylesheet" href="https://qa-notion-chat.onrender.com/static/styles.css?v=buni-buttons-2" />
+    <link rel="stylesheet" href="https://qa-notion-chat.onrender.com/static/styles.css?v=buni-buttons-3" />
   </noscript>
-  <script src="./i18n.js?v=2"></script>
+  <script src="./i18n.js?v=3"></script>
 </head>
 <body>
   <div id="buniBoot" class="buni-boot" role="status" aria-live="polite" lang="ko" data-preserve>
@@ -208,9 +208,12 @@
         <small>QA팀과 함께 결함 제보, 테스트 현황, 운영 모니터링을 도와드립니다.</small>
         <span id="syncStatus">준비 중</span>
       </div>
-      <div class="header-actions">
-        <button id="btnLanguage" type="button" aria-label="영어로 변경">🌐 English</button>
-        <button id="btnSync" type="button">동기화</button>
+      <div class="header-controls">
+        <div class="header-actions">
+          <button id="btnLanguage" type="button" aria-label="영어로 변경">🌐 English</button>
+          <button id="btnSync" type="button">동기화</button>
+        </div>
+        <a class="coachmark-link" data-coachmark-link href="./bug_report_guide.html?lang=ko" target="_blank" rel="noopener noreferrer">코치마크 바로가기 ↗</a>
       </div>
     </header>
     <main id="messages" class="messages"></main>
@@ -235,7 +238,7 @@
     window.BUNI_BOOT_LANGUAGE = "ko";
     window.HYO_CHAT_API_BASE = "https://qa-notion-chat.onrender.com";
     window.HYO_CHAT_ASSET_BASE = "https://qa-notion-chat.onrender.com";
-    window.BUNI_CHAT_CSS_URL = "https://qa-notion-chat.onrender.com/static/styles.css?v=buni-buttons-2";
+    window.BUNI_CHAT_CSS_URL = "https://qa-notion-chat.onrender.com/static/styles.css?v=buni-buttons-3";
     window.BUNI_CHAT_JS_URL = "https://qa-notion-chat.onrender.com/static/chat.js?v=buni-i18n-1";
     window.BUNI_CHAT_ASSET_URL = "https://qa-notion-chat.onrender.com/static/hanq.png";
 

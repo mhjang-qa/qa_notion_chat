@@ -116,6 +116,26 @@ h1 {
   line-height: 1.35;
 }
 
+.header-controls {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.coachmark-link {
+  color: var(--accent);
+  font-size: 12px;
+  line-height: 1.5;
+  text-underline-offset: 3px;
+}
+
+.coachmark-link:hover,
+.coachmark-link:focus-visible {
+  color: var(--ink);
+}
+
 .header-actions {
   flex: 0 0 auto;
   display: flex;

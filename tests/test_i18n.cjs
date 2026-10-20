@@ -17,7 +17,7 @@ function page(search, saved, storageBlocked = false) {
   context.window = {dispatchEvent(){}};
   vm.runInNewContext(script, context);
   events.DOMContentLoaded();
-  return {i18n:context.window.BuniI18n, nodes, document, placeholder, saved:()=>saved};
+  return {i18n:context.window.BuniI18n, nodes, document, placeholder, context, saved:()=>saved};
 }
 let p = page('?lang=en', 'ko');
 assert.equal(p.document.documentElement.lang, 'en');
@@ -36,3 +36,52 @@ p = page('?lang=en', '', true);
 p.i18n.setLanguage('ko');
 assert.equal(p.i18n.language, 'ko');
 console.log('UI localization: URL, persistence, blocked storage, and lossless Korean round-trip passed.');
+
+// Run the actual embed boot script with asset loading held pending.
+const embed = fs.readFileSync(require('node:path').join(__dirname, '../embed.html'), 'utf8');
+const bootScript = [...embed.matchAll(/<script>([\s\S]*?)<\/script>/g)].at(-1)[1];
+for (const savedLanguage of ['ko', 'en']) {
+  const bootPage = page('', savedLanguage);
+  const {context, document} = bootPage;
+  const title = {}, hint = {}, status = {}, chat = {hidden: true};
+  const boot = {hidden: false, querySelector: selector => selector === 'h1' ? title : hint};
+  const assets = [];
+  let tick, timerCleared = false;
+  document.getElementById = id => ({buniBoot: boot, buniBootText: status, chatWidget: chat})[id];
+  document.querySelectorAll = () => [];
+  document.createElement = tag => ({tag});
+  document.head = document.body = {appendChild: asset => assets.push(asset)};
+  Object.assign(context.window, {
+    setInterval(callback, delay) { assert.equal(delay, 1900); tick = callback; return 1; },
+    clearInterval() { timerCleared = true; },
+    addEventListener() {}
+  });
+  vm.runInNewContext(bootScript, context);
+  assert.equal(boot.lang, 'ko');
+  assert.equal(title.textContent, '버니가 준비 중입니다');
+  assert.equal(status.textContent, '버니가 노션에서 깨어나는 중입니다.');
+  tick();
+  assert.equal(boot.lang, 'en');
+  assert.equal(title.textContent, 'BUNI is getting ready');
+  assert.equal(hint.textContent, 'The first visit may take a little longer');
+  assert.equal(status.textContent, 'BUNI is waking up in Notion.');
+  tick();
+  assert.equal(status.textContent, '버니가 버그를 정리 중입니다.');
+  tick();
+  assert.equal(status.textContent, 'BUNI is organizing bug reports.');
+  context.window.BUNI_BOOT_ERROR();
+  assert.equal(status.textContent, 'Unable to load BUNI. Please refresh in a moment.');
+  tick();
+  assert.equal(status.textContent, '버니를 불러오지 못했습니다. 잠시 후 새로고침해 주세요.');
+  assert.equal(bootPage.i18n.language, savedLanguage);
+  assert.equal(bootPage.saved(), savedLanguage);
+  context.window.BUNI_LOAD_CHAT_ASSETS();
+  assets.find(asset => asset.tag === 'script').onload();
+  assert.equal(timerCleared, false);
+  assert.equal(boot.hidden, false);
+  assets.find(asset => asset.tag === 'link').onload();
+  assert.equal(timerCleared, true);
+  assert.equal(boot.hidden, true);
+  assert.equal(chat.hidden, false);
+}
+console.log('Boot screen: Korean/English alternation, paired messages, persistent errors, language preference, and asset readiness passed.');

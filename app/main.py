@@ -79,6 +79,7 @@ class AuthGateMiddleware(BaseHTTPMiddleware):
             "/health",
             "/healthz",
             "/favicon.ico",
+            "/i18n.js",
             "/bug-report-guide",
             "/bug-report-guide.html",
             "/bug_report_guide.html",
@@ -172,3 +173,8 @@ def favicon():
 @app.get("/bug_report_guide.html")
 def bug_report_guide():
     return FileResponse(BASE_DIR.parent / "bug_report_guide.html")
+
+
+@app.get("/i18n.js")
+def i18n_script():
+    return FileResponse(BASE_DIR.parent / "i18n.js", media_type="text/javascript")

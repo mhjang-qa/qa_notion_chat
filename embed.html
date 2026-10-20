@@ -182,6 +182,7 @@
   <noscript>
     <link rel="stylesheet" href="https://qa-notion-chat.onrender.com/static/styles.css?v=buni-1" />
   </noscript>
+  <script src="./i18n.js?v=1"></script>
 </head>
 <body>
   <div id="buniBoot" class="buni-boot" role="status" aria-live="polite">
@@ -208,6 +209,7 @@
         <span id="syncStatus">준비 중</span>
       </div>
       <div class="header-actions">
+        <button id="btnLanguage" type="button" aria-label="영어로 변경">🌐 English</button>
         <button id="btnSync" type="button">동기화</button>
       </div>
     </header>
@@ -233,7 +235,7 @@
     window.HYO_CHAT_API_BASE = "https://qa-notion-chat.onrender.com";
     window.HYO_CHAT_ASSET_BASE = "https://qa-notion-chat.onrender.com";
     window.BUNI_CHAT_CSS_URL = "https://qa-notion-chat.onrender.com/static/styles.css?v=buni-1";
-    window.BUNI_CHAT_JS_URL = "https://qa-notion-chat.onrender.com/static/chat.js?v=buni-llm-4";
+    window.BUNI_CHAT_JS_URL = "https://qa-notion-chat.onrender.com/static/chat.js?v=buni-i18n-1";
     window.BUNI_CHAT_ASSET_URL = "https://qa-notion-chat.onrender.com/static/hanq.png";
 
     window.BUNI_TRY_SHOW_CHAT = function () {
@@ -252,7 +254,7 @@
 
     window.BUNI_BOOT_ERROR = function (message) {
       var text = document.getElementById("buniBootText");
-      if (text) text.textContent = message || "버니를 불러오지 못했습니다. 잠시 후 새로고침해 주세요.";
+      if (text) text.textContent = window.BuniI18n.translate(message || "버니를 불러오지 못했습니다. 잠시 후 새로고침해 주세요.");
     };
 
     if (window.BUNI_BOOT_PENDING_ERROR) {
@@ -263,7 +265,7 @@
       var text = document.getElementById("buniBootText");
       if (!text) return;
       window.BUNI_BOOT_INDEX = (window.BUNI_BOOT_INDEX + 1) % window.BUNI_BOOT_MESSAGES.length;
-      text.textContent = window.BUNI_BOOT_MESSAGES[window.BUNI_BOOT_INDEX];
+      text.textContent = window.BuniI18n.translate(window.BUNI_BOOT_MESSAGES[window.BUNI_BOOT_INDEX]);
     }, 1900);
 
     window.BUNI_LOAD_CHAT_ASSETS = function () {

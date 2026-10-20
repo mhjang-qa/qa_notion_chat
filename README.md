@@ -185,3 +185,17 @@ RENDER_SERVICE_URL=https://<render-service>.onrender.com
 - 관련 근거가 없으면 답변하지 않고, 노션에서 찾지 못했다고 응답합니다.
 - Gemini CLI가 있으면 검색된 문맥 안에서만 문장을 정리합니다.
 - Gemini CLI가 없거나 실패하면 검색된 원문 발췌를 반환합니다.
+
+## 한국어 / English
+
+챗봇 상단의 `🌐 English` 버튼으로 영어로 전환하고 `🌐 한국어`로 돌아올 수 있습니다. 선택은 브라우저에 저장됩니다. 저장소 접근이 제한된 임베드에서도 `?lang=en` 또는 `?lang=ko`로 직접 언어를 지정할 수 있습니다.
+
+- 영어에서는 `help`, `report a bug`, `bug report guide`, `submit`, `cancel`, `none`, `yes`, `no`를 사용할 수 있습니다.
+- 결함 제보 도중 언어를 바꿔도 수집한 입력값과 업로드한 파일은 유지합니다. 사용자 원문과 Notion 플랫폼 값은 그대로 저장합니다 (`Web-Other` 화면 표시는 `Web-기타` 값으로 전달).
+- 가이드 링크에는 선택 언어가 전달되며, 코치마크 8단계와 예시도 번역됩니다.
+- 일반 영어 질문은 기존 Gemini 설정으로 한국어 검색어를 생성한 뒤 기존 검색/범위 제한을 적용합니다. 답변의 표시 문구만 영어로 번역하며 원문 URL, ID, 응답 모드는 유지합니다. 새로운 일반 지식 답변에 대한 LLM 동의 절차는 그대로 적용됩니다.
+- UI와 기본 명령은 번역 API 없이 동작합니다. 동적 검색어/답변 번역에는 `GEMINI_API_KEY`가 필요하며 번역 실패 시 영어 재시도 안내를 표시합니다.
+
+배포 시 GitHub Pages의 `embed.html`, `i18n.js`, 가이드 파일과 Render 백엔드를 함께 갱신해야 합니다.
+
+검증: `.venv/bin/python -m unittest discover -s tests -v`, `node tests/test_i18n.cjs`

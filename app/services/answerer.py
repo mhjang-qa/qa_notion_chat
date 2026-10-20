@@ -905,7 +905,14 @@ def _defect_status_summary(question: str = "") -> dict:
     }
 
 
-def answer_question(question: str, *, allow_llm: bool = False) -> dict:
+def answer_question(question: str, *, allow_llm: bool = False, language: str = "ko") -> dict:
+    if language == "en":
+        from app.services.localization import answer_in_english
+        return answer_in_english(question, allow_llm, _answer_question_ko)
+    return _answer_question_ko(question, allow_llm=allow_llm)
+
+
+def _answer_question_ko(question: str, *, allow_llm: bool = False) -> dict:
     fixed = _fixed_response(question)
     if fixed is not None:
         return fixed

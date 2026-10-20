@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+from typing import Literal
 
 from fastapi import APIRouter, File, HTTPException, Request, UploadFile
 from pydantic import BaseModel
@@ -19,6 +20,7 @@ router = APIRouter()
 class ChatRequest(BaseModel):
     question: str
     allow_llm: bool = False
+    language: Literal["ko", "en"] = "ko"
 
 
 class BugReportRequest(BaseModel):
@@ -49,16 +51,16 @@ def _request_meta(request: Request) -> dict[str, str]:
 def chat(req: ChatRequest, request: Request):
     question = (req.question or "").strip()
     if not question:
-        return {"answer": "질문을 입력해 주세요.", "sources": [], "origin": "SYSTEM", "mode": "empty"}
+        return {"answer": "Please enter a question." if req.language == "en" else "질문을 입력해 주세요.", "sources": [], "origin": "SYSTEM", "mode": "empty"}
     request_meta = _request_meta(request)
     try:
-        answer = answer_question(question, allow_llm=req.allow_llm)
+        answer = answer_question(question, allow_llm=req.allow_llm, language=req.language)
         record_chat_interaction_async(question, answer, request_meta=request_meta)
         return answer
     except Exception as exc:
         logger.exception("[CHAT] answer generation failed: %s", exc)
         answer = {
-            "answer": "답변 처리 중 일시적인 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.",
+            "answer": "A temporary error occurred. Please try again shortly." if req.language == "en" else "답변 처리 중 일시적인 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.",
             "sources": [],
             "items": [],
             "origin": "SYSTEM",

@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>버그요정 버니의 결함 제보 가이드</title>
   <style>
+    #btnLanguage { float: right; padding: 9px 12px; border: 1px solid #0f8275; border-radius: 8px; background: white; color: #0f8275; cursor: pointer; font-weight: 700; }
     :root {
       --guide-bg: #f4f7fb;
       --guide-surface: rgba(255, 255, 255, 0.96);
@@ -519,11 +520,13 @@
 
     .summary-grid {
       display: grid;
-      grid-template-columns: 60px minmax(0, 1fr);
+      grid-template-columns: max-content minmax(0, 1fr);
       gap: 3px 6px;
       font-size: 13px;
       line-height: 1.25;
     }
+
+    .summary-grid span { overflow-wrap: anywhere; }
 
     .summary-grid span:nth-child(odd) {
       color: var(--guide-muted);
@@ -598,6 +601,8 @@
       gap: 3px;
     }
 
+    html[lang="en"] .chat-demo-card::before { content: "Bug report example"; }
+
     @media (max-width: 980px) {
       .guide-hero,
       .guide-stage {
@@ -667,12 +672,14 @@
       }
     }
   </style>
+  <script src="./i18n.js?v=1"></script>
 </head>
 <body>
   <main class="guide-shell">
     <section class="guide-hero">
       <div class="hero-copy">
-        <p class="eyebrow">Bug Fairy BUNI</p>
+        <button id="btnLanguage" type="button" aria-label="영어로 변경">🌐 English</button>
+        <p class="eyebrow" data-preserve>Bug Fairy BUNI</p>
         <h3>BUNI 결함 제보 안내</h3>
         <p>재현 가능한 제보는 빠른 분석과 수정에 큰 도움이 됩니다.</p>
       </div>
@@ -838,6 +845,7 @@
   </main>
 
   <script>
+    const t = window.BuniI18n.t;
     const steps = [
       {
         title: "결함 제보 시작",
@@ -901,7 +909,7 @@
       steps.forEach((step, index) => {
         const button = document.createElement("button");
         button.type = "button";
-        button.textContent = `${index + 1}. ${step.title}`;
+        button.textContent = `${index + 1}. ${t(step.title)}`;
         if (index === currentStep) button.classList.add("active");
         button.addEventListener("click", () => {
           currentStep = index;
@@ -957,10 +965,10 @@
     function render() {
       const step = steps[currentStep];
       stepNumber.textContent = String(currentStep + 1);
-      stepLabel.textContent = step.title;
-      stepSummary.textContent = step.summary;
-      captionTitle.textContent = `${currentStep + 1}. ${step.title}`;
-      captionBody.textContent = step.caption;
+      stepLabel.textContent = t(step.title);
+      stepSummary.textContent = t(step.summary);
+      captionTitle.textContent = `${currentStep + 1}. ${t(step.title)}`;
+      captionBody.textContent = t(step.caption);
 
       targets.forEach((target) => {
         target.classList.toggle("active", Number(target.dataset.stepTarget) === currentStep + 1);
@@ -1008,7 +1016,9 @@
     });
 
     window.addEventListener("resize", positionActiveBubble);
+    window.addEventListener("buni:language", () => { render(); window.BuniI18n.apply(); });
     render();
+    window.BuniI18n.apply();
   </script>
 </body>
 </html>

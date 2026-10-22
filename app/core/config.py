@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import secrets
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -39,9 +40,9 @@ NOTION_TOKEN = env_str("NOTION_TOKEN") or env_str("NOTION_API_KEY")
 NOTION_VERSION = env_str("NOTION_VERSION", "2022-06-28")
 NOTION_ROOT_PAGE_ID = env_str("NOTION_ROOT_PAGE_ID", "1fa73fbd195180a59f39d3ae80362936")
 
-SESSION_SECRET = env_str("SESSION_SECRET", "local-dev-secret-change-me")
+SESSION_SECRET = env_str("SESSION_SECRET") or secrets.token_urlsafe(48)
 TEMP_ID = env_str("TEMP_ID", "qa")
-TEMP_PW = env_str("TEMP_PW", "qa")
+TEMP_PW = env_str("TEMP_PW")
 AUTH_REQUIRED = env_bool("AUTH_REQUIRED", False)
 STARTUP_SYNC_PRIORITY = env_bool("STARTUP_SYNC_PRIORITY", False)
 STARTUP_SYNC_MAX_INDEX_AGE_HOURS = env_float("STARTUP_SYNC_MAX_INDEX_AGE_HOURS", 12.0)

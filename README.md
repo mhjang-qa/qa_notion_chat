@@ -199,3 +199,11 @@ RENDER_SERVICE_URL=https://<render-service>.onrender.com
 배포 시 GitHub Pages의 `embed.html`, `i18n.js`, 가이드 파일과 Render 백엔드를 함께 갱신해야 합니다.
 
 검증: `.venv/bin/python -m unittest discover -s tests -v`, `node tests/test_i18n.cjs`
+
+## 로그인 설정 보강
+
+`TEMP_PW`가 비어 있으면 로그인을 허용하지 않습니다. `AUTH_REQUIRED=true`를 사용할 때 `TEMP_PW`를 설정하세요. `SESSION_SECRET`이 없으면 프로세스마다 임시 난수 키를 생성해 기존 공개 기본 키로 세션을 위조할 수 없게 합니다. 재시작 후 로그인 유지 및 여러 worker 간 세션 공유에는 동일한 무작위 `SESSION_SECRET`을 설정하세요. 기본 공개 임베드 모드는 유지됩니다.
+
+## 의존성 보안 점검 (2026-10-22)
+
+기존 FastAPI 스택을 유지하면서 공개 보안 권고가 있는 고정 의존성을 수정 버전으로 갱신했습니다. FastAPI/Starlette의 보안 수정과 함께 사용 중인 패키지만 업데이트하며, `pip check`와 기존 테스트 또는 로컬 smoke 검증을 수행했습니다. 정확한 버전은 `requirements.txt`를 따릅니다. 새 환경에서 다시 설치한 뒤 배포하세요.

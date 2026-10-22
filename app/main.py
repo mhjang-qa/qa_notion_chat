@@ -134,25 +134,26 @@ def head_root():
 def root(request: Request):
     if config.AUTH_REQUIRED and not is_authed(request):
         return RedirectResponse("/login", status_code=302)
-    return templates.TemplateResponse("chat.html", {"request": request, "auth_required": config.AUTH_REQUIRED})
+    return templates.TemplateResponse(request=request, name="chat.html", context={"auth_required": config.AUTH_REQUIRED})
 
 
 @app.get("/login", response_class=HTMLResponse)
 def login_page(request: Request):
     if is_authed(request):
         return RedirectResponse("/", status_code=302)
-    return templates.TemplateResponse("login.html", {"request": request, "error": None})
+    return templates.TemplateResponse(request=request, name="login.html", context={"error": None})
 
 
 @app.post("/login", response_class=HTMLResponse)
 def login_action(request: Request, username: str = Form(...), password: str = Form(...)):
-    if username == config.TEMP_ID and password == config.TEMP_PW:
+    if config.TEMP_PW and username == config.TEMP_ID and password == config.TEMP_PW:
         request.session["auth"] = True
         request.session["user"] = username
         return RedirectResponse("/", status_code=302)
     return templates.TemplateResponse(
-        "login.html",
-        {"request": request, "error": "아이디 또는 비밀번호가 잘못되었습니다."},
+        request=request,
+        name="login.html",
+        context={"error": "아이디 또는 비밀번호가 잘못되었습니다."},
         status_code=401,
     )
 
